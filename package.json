@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "npm run lint && npm run format && next dev --turbopack",
     "build": "npm run lint && npm run format && next build --turbopack",
-    "start": "next start",
+    "start": "npx serve@latest out",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "format": "prettier --write ."
   },
