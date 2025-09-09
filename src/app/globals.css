@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #ffffff;
+  --background: #0e131d;
   --foreground: #171717;
 }
 
@@ -19,8 +19,47 @@
   }
 }
 
+@font-face {
+  font-family: 'Art';
+  src: url('/font/Art.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Art', Arial, Helvetica, sans-serif;
+}
+
+.font-default {
+  font-family: Arial, Helvetica, sans-serif !important;
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-twinkle {
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+/* Slow rotation for time-lapse background */
+@keyframes sky-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-sky-rotate {
+  animation: sky-rotate 240s linear infinite;
 }

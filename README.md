@@ -1,38 +1,89 @@
-# 📄 Cklee-99.github.io GitHub Page
+# 📝 Study Log - Learning Journey
 
-Built with passion, debugged with despair and emotional damage.
+A personal study log website built with Next.js 15, using static rendering and deployed to GitHub Pages.
 
----
+## ✨ Features
 
-## 🚀 Getting Started
+- 📝 **Timeline Display**: Show learning records in timeline format
+- 🎨 **Modern UI**: Built with TailwindCSS 4 and dark mode support
+- ✨ **Smooth Animations**: Integrated Framer Motion for fluid interactions
+- 📱 **Responsive Design**: Support for various device sizes
+- 🔄 **Expand/Collapse**: Cards support click to expand and view details
+- 📊 **JSON Data**: Learning records stored in `public/data/logs.json`
+- 🌟 **Stellar Background**: Beautiful animated starfield background
 
-To run the project locally:
+## 🚀 Quick Start
+
+### Local Development
 
 ```bash
 npm install
 npm run dev
 ```
 
-To build your project and launch the production server:
+Open [http://localhost:3000](http://localhost:3000) to view the result
+
+### Build and Deploy
 
 ```bash
 npm run build
 npm run start
 ```
 
----
-
 ## 🔧 Tech Stack
 
-- Framework: Next.js (v15.5.2)
-- UI Library: React (v19.1.0)
-- Styling: Tailwind CSS (v4.1.13)
-- Type Checking: TypeScript (v5)
-- Linting: ESLint + Prettier
-- Build Tool: Turbopack (via Next.js)
+- **Next.js 15** - React framework with App Router
+- **TypeScript** - Type safety
+- **TailwindCSS 4** - Modern CSS framework
+- **Framer Motion** - Animation library
+- **GitHub Pages** - Static site deployment
 
----
+## 📊 Data Structure
+
+Learning records are stored in `public/logs.json`:
+
+```json
+[
+  {
+    "date": "2025-01-15",
+    "title": "Learning Topic",
+    "summary": "Brief summary",
+    "details": "Detailed content...",
+    "icon": "📘"
+  }
+]
+```
 
 ## 📦 Project Structure
 
-This project uses the App Router and follows Next.js conventions. Pages, components, and styles are organized for scalability and clarity.
+```
+src/
+├── app/
+│   ├── components/
+│   │   ├── StudyCard.tsx    # Study card component
+│   │   ├── Timeline.tsx     # Timeline component
+│   │   └── Stellaris.tsx    # Starfield background
+│   ├── globals.css          # Global styles
+│   ├── layout.tsx           # Root layout
+│   └── page.tsx             # Home page
+public/
+├── data/logs.json           # Learning records data
+└── font/Art.ttf             # Font file
+```
+
+## 🎨 Customization
+
+- Modify `public/data/logs.json` to update learning records
+- Adjust components in `src/app/components/` to change UI
+- Customize styles in `src/app/globals.css`
+
+## 🌟 Background Features
+
+- Animated starfield with twinkling stars
+- Deep space gradient background
+- Multiple star colors and sizes
+- Smooth animations and transitions
+
+---
+
+Built with passion, debugged with despair and emotional damage. 💻✨

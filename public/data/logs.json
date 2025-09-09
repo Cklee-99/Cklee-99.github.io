@@ -1,0 +1,37 @@
+[
+  {
+    "date": "2025-01-15",
+    "title": "Learning Golang Concurrency",
+    "summary": "Understanding goroutines and channels",
+    "details": "Today I studied Golang's goroutines and tried implementing the producer-consumer pattern. I discovered that channel buffer size significantly impacts performance - unbuffered channels cause blocking while buffered channels can improve concurrent performance.",
+    "icon": "📘"
+  },
+  {
+    "date": "2025-01-14",
+    "title": "Deep Dive into React Server Components",
+    "summary": "Exploring Next.js 15's RSC architecture",
+    "details": "I delved deep into how React Server Components work and understood why server-side rendering can reduce client-side bundle size. In Next.js 15, RSC implementation is more mature and supports more interactive patterns.",
+    "icon": "⚛️"
+  },
+  {
+    "date": "2025-01-13",
+    "title": "Advanced TypeScript Type Operations",
+    "summary": "Learning Utility Types and Conditional Types",
+    "details": "Today I studied advanced TypeScript type operations including Pick, Omit, Partial, Required utility types, and Conditional Types usage. These tools make the type system more flexible and powerful.",
+    "icon": "🔷"
+  },
+  {
+    "date": "2025-01-12",
+    "title": "TailwindCSS 4 New Features",
+    "summary": "Exploring the latest CSS-in-JS alternative",
+    "details": "I researched TailwindCSS 4's new features including the new CSS engine, better developer experience, and integration with modern frontend frameworks. I particularly like the new @import syntax and better TypeScript support.",
+    "icon": "🎨"
+  },
+  {
+    "date": "2025-01-11",
+    "title": "GitHub Actions Automated Deployment",
+    "summary": "Setting up CI/CD pipeline to GitHub Pages",
+    "details": "I configured GitHub Actions to automate the deployment process, including automatic Next.js project building, running tests, and deploying to GitHub Pages. I learned workflow syntax and best practices.",
+    "icon": "🚀"
+  }
+]
