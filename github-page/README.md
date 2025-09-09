@@ -22,7 +22,7 @@ npm run start
 
 ---
 
-## 🧰 Tech Stack
+## 🔧 Tech Stack
 
 - Framework: Next.js (v15.5.2)
 - UI Library: React (v19.1.0)
