@@ -6,6 +6,7 @@
   src: url('/font/Art.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
+  font-display: block; /* Hide text until font is loaded - prevents FOUT */
 }
 
 @custom-variant dark (&:is(.dark *));

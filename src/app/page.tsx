@@ -1,24 +1,34 @@
 'use client';
 import { Galaxy, GalaxySidebar, StarField } from '@/features/galaxy';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { FontLoader } from '@/components/FontLoader';
 
 export default function Page() {
+  const isMobile = useIsMobile();
+
   return (
-    <div
-      className="min-h-screen relative overflow-hidden"
-      style={{
-        background: 'linear-gradient(135deg, #0F0B1E 0%, #140C2A 25%, #1A103D 50%, #2B1A4F 75%, #0F0B1E 100%)',
-      }}
-    >
-      <StarField />
-      <GalaxySidebar />
-      <div className="relative z-1">
-        <Galaxy />
+    <FontLoader>
+      <div
+        className="min-h-screen relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, #0F0B1E 0%, #140C2A 25%, #1A103D 50%, #2B1A4F 75%, #0F0B1E 100%)',
+        }}
+      >
+        <StarField />
+        <GalaxySidebar />
+        <div className="relative z-1">
+          <Galaxy />
+        </div>
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-10 text-center select-none px-4 w-full max-w-md">
+          <p className="text-xs sm:text-sm font-inter text-muted-foreground bg-card/60 backdrop-blur-md px-4 sm:px-6 py-2 sm:py-3 rounded-full border border-border select-none mx-auto">
+            {isMobile ? (
+              <>Click planets to explore • Drag to rotate</>
+            ) : (
+              <>Click planets to explore • Drag to rotate • Scroll to zoom</>
+            )}
+          </p>
+        </div>
       </div>
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-10 text-center select-none px-4 w-full max-w-md">
-        <p className="text-xs sm:text-sm font-inter text-muted-foreground bg-card/60 backdrop-blur-md px-4 sm:px-6 py-2 sm:py-3 rounded-full border border-border select-none mx-auto">
-          Click planets to explore • Drag to rotate • Scroll to zoom
-        </p>
-      </div>
-    </div>
+    </FontLoader>
   );
 }
