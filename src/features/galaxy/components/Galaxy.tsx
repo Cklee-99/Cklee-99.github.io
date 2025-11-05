@@ -49,31 +49,35 @@ export const Galaxy = () => {
     return positions;
   }, [orbits]);
 
+  // Helper function to calculate angle from coordinates
+  const calculateAngle = useCallback((clientX: number, clientY: number) => {
+    if (!galaxyRef.current) return null;
+    const rect = galaxyRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    return Math.atan2(clientY - centerY, clientX - centerX) * (180 / Math.PI);
+  }, []);
+
   // Mouse down handler
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     setIsDragging(true);
     setPauseAnimation(true);
     velocityRef.current = 0;
 
-    if (galaxyRef.current) {
-      const rect = galaxyRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
+    const angle = calculateAngle(e.clientX, e.clientY);
+    if (angle !== null) {
       lastMouseAngle.current = angle;
     }
-  }, []);
+  }, [calculateAngle]);
 
-  // Mouse move handler with velocity tracking
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent) => {
-      if (!isDragging || !galaxyRef.current) return;
+  // Handle move with coordinates (shared by mouse and touch)
+  const handleMove = useCallback(
+    (clientX: number, clientY: number) => {
+      if (!isDragging) return;
 
-      const rect = galaxyRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
+      const currentAngle = calculateAngle(clientX, clientY);
+      if (currentAngle === null) return;
 
-      const currentAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
       const prevAngle = lastMouseAngle.current ?? currentAngle;
 
       let deltaAngle = currentAngle - prevAngle;
@@ -90,7 +94,15 @@ export const Galaxy = () => {
       setRotation((prev) => prev + deltaAngle);
       lastMouseAngle.current = currentAngle;
     },
-    [isDragging],
+    [isDragging, calculateAngle],
+  );
+
+  // Mouse move handler with velocity tracking
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      handleMove(e.clientX, e.clientY);
+    },
+    [handleMove],
   );
 
   // Mouse up handler with momentum
@@ -125,11 +137,65 @@ export const Galaxy = () => {
     setScale((prev) => Math.max(0.5, Math.min(1.5, prev + delta)));
   }, []);
 
-  // Handle planet click
+  // Touch start handler
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      // Only handle single touch
+      if (e.touches.length !== 1) return;
+
+      // Don't start dragging if touching a button
+      const target = e.target as HTMLElement;
+      if (target.closest('button')) return;
+
+      const touch = e.touches[0];
+      setIsDragging(true);
+      setPauseAnimation(true);
+      velocityRef.current = 0;
+
+      const angle = calculateAngle(touch.clientX, touch.clientY);
+      if (angle !== null) {
+        lastMouseAngle.current = angle;
+      }
+    },
+    [calculateAngle],
+  );
+
+  // Touch move handler
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      // Only handle single touch
+      if (e.touches.length !== 1) return;
+
+      e.preventDefault(); // Prevent scrolling
+      const touch = e.touches[0];
+      handleMove(touch.clientX, touch.clientY);
+    },
+    [handleMove],
+  );
+
+  // Touch end handler
+  const handleTouchEnd = useCallback(() => {
+    handleMouseUp();
+  }, [handleMouseUp]);
+
+  // Handle planet click/touch
   const handlePlanetClick = useCallback(
     (route: string) => (e: React.MouseEvent) => {
       e.stopPropagation();
       router.push(route);
+    },
+    [router],
+  );
+
+  // Handle planet touch (separate from drag)
+  const handlePlanetTouch = useCallback(
+    (route: string) => (e: React.TouchEvent) => {
+      // Only handle if it's a tap (not a drag)
+      if (e.touches.length === 0 || e.changedTouches.length === 1) {
+        e.stopPropagation();
+        e.preventDefault();
+        router.push(route);
+      }
     },
     [router],
   );
@@ -141,7 +207,7 @@ export const Galaxy = () => {
     setHasMounted(true);
   }, []);
 
-  // Global mouse up listener
+  // Global mouse up and touch end listeners
   useEffect(() => {
     const handleGlobalMouseUp = () => {
       if (isDragging) {
@@ -149,8 +215,21 @@ export const Galaxy = () => {
       }
     };
 
+    const handleGlobalTouchEnd = () => {
+      if (isDragging) {
+        handleMouseUp();
+      }
+    };
+
     window.addEventListener('mouseup', handleGlobalMouseUp);
-    return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
+    window.addEventListener('touchend', handleGlobalTouchEnd);
+    window.addEventListener('touchcancel', handleGlobalTouchEnd);
+
+    return () => {
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+      window.removeEventListener('touchend', handleGlobalTouchEnd);
+      window.removeEventListener('touchcancel', handleGlobalTouchEnd);
+    };
   }, [isDragging, handleMouseUp]);
 
   // Auto-rotation animation with requestAnimationFrame
@@ -180,6 +259,9 @@ export const Galaxy = () => {
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       onWheel={handleWheel}
       style={{ touchAction: 'none' }}
     >
@@ -252,10 +334,12 @@ export const Galaxy = () => {
             <button
               key={category.route}
               onClick={handlePlanetClick(category.route)}
+              onTouchEnd={handlePlanetTouch(category.route)}
               className={`galaxy-planet-btn ${orbit.showHover ? 'group' : ''}`}
               style={{
                 transform: `translate(${rotatedX}px, ${rotatedY}px)`,
                 willChange: isDragging ? 'transform' : 'auto',
+                touchAction: 'manipulation',
               }}
               aria-label={`Go to ${category.label}`}
             >

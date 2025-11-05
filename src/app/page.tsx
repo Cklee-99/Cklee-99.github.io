@@ -14,8 +14,8 @@ export default function Page() {
       <div className="relative z-1">
         <Galaxy />
       </div>
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-10 text-center select-none">
-        <p className="text-sm font-inter text-muted-foreground bg-card/60 backdrop-blur-md px-6 py-3 rounded-full border border-border select-none">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-10 text-center select-none px-4 w-full max-w-md">
+        <p className="text-xs sm:text-sm font-inter text-muted-foreground bg-card/60 backdrop-blur-md px-4 sm:px-6 py-2 sm:py-3 rounded-full border border-border select-none mx-auto">
           Click planets to explore • Drag to rotate • Scroll to zoom
         </p>
       </div>
