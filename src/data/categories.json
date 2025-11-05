@@ -1,0 +1,12 @@
+[
+  { "emoji": "📘", "label": "Learning", "route": "/learning" },
+  { "emoji": "🏋️", "label": "Fitness", "route": "/fitness" },
+  { "emoji": "💰", "label": "Finance", "route": "/finance" },
+  { "emoji": "📈", "label": "Investment", "route": "/investment" },
+  { "emoji": "📅", "label": "Calendar", "route": "/calendar" },
+  { "emoji": "✈️", "label": "Travel", "route": "/travel" },
+  { "emoji": "💼", "label": "Career", "route": "/career" },
+  { "emoji": "🌱", "label": "Routine", "route": "/routine" },
+  { "emoji": "🛍️", "label": "Shopping", "route": "/shopping" },
+  { "emoji": "📝", "label": "Note", "route": "/note" }
+]
