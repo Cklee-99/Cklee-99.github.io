@@ -10,7 +10,10 @@
 - **Tagline:** Open-Source Quantitative Investing Playground
 - **Audience:** People learning US stock/ETF investing and testing deterministic strategies.
 - **Primary viewport:** Mobile, starting at 390 × 844 CSS pixels; remain usable at 320 CSS pixels.
-- **Deployment:** Static site on GitHub Pages, including project-site URLs such as `https://<owner>.github.io/quantfolio-lab/`.
+- **Current deployment repository:** `Cklee-99.github.io` (`https://github.com/Cklee-99/Cklee-99.github.io`).
+- **Current published URL:** `https://cklee-99.github.io/`. This is the account's GitHub Pages user site and is served from the domain root.
+- **Current Vite production base:** `/` (or Vite's default root base); do not use `/quantfolio-lab/` for the current deployment.
+- **Future project-site example:** If the app is later moved to a separate `quantfolio-lab` repository, the usual project URL will be `https://cklee-99.github.io/quantfolio-lab/` and the base-path requirements must be reviewed then.
 - **Default locale:** Traditional Chinese (`zh-TW`). Secondary locale: English (`en`).
 
 ### Design principles
@@ -424,17 +427,31 @@ Target WCAG 2.2 AA as an engineering goal.
 
 These requirements take priority over any design idea that needs a server.
 
+### Current deployment: GitHub Pages user site
+
+- Repository: `Cklee-99.github.io` — `https://github.com/Cklee-99/Cklee-99.github.io`.
+- Published URL: `https://cklee-99.github.io/`.
+- This repository is the account's GitHub Pages **user-site repository**, not a project-site repository. The app is served from the domain root.
+- Vite production `base` must be `/` or remain at its default root value. Do not set `/quantfolio-lab/` in the current configuration.
+- GitHub Actions must build the project and deploy the generated `dist/` directory as the Pages artifact. Do not deploy raw `src/` files as the production site.
+- Keep the workflow under `.github/workflows/`. Verify the actual workflow and build output before changing it; do not replace working deployment configuration unnecessarily.
+
+### Static application constraints
+
 1. All core app features must be implemented in client-side React/TypeScript and static assets.
-2. Use Vite's correct `base` for a repository project site: `/quantfolio-lab/` in the production project-site build, while retaining convenient local development paths. Do not hardcode the owner's GitHub username.
-3. Build and resolve assets through Vite/imported assets or `import.meta.env.BASE_URL`. Do not reference public assets using root-absolute paths such as `/logo.svg` when that would break the repository subpath.
-4. Use hash-based routes (or equivalent static-safe routing) so refreshing a view does not require a server rewrite.
-5. Bundle core UI dependencies and translation resources through npm. No feature may depend on a third-party script loaded from a CDN at runtime.
-6. Do not put API keys in source code, repository secrets intended for client exposure, `VITE_*` variables, or generated JS bundles. Any key used by a browser is visible to users.
-7. Online market-data services are optional and may fail due to provider policy, rate limits, network conditions, or CORS. CSV import and clearly labeled demo data must still work when external data is unavailable.
-8. Do not introduce API endpoints, serverless functions, a database server, SSR, server-side secrets, or background scheduled jobs as required runtime dependencies.
-9. Deployment must use GitHub Actions with a static build artifact, and deployment instructions must specify the build output directory.
-10. Test the built site at its actual subpath, not only at `/`. Verify navigation, refresh, CSS, fonts/fallbacks, chart assets, translations, and demo/CSV workflows.
-11. A feature is not “GitHub Pages compatible” merely because `npm run build` succeeds. Verify that it has no runtime dependency on unavailable server functionality.
+2. Resolve assets through Vite/imported assets or `import.meta.env.BASE_URL`. Do not rely on source paths such as `/src/main.tsx` in the production site.
+3. Use hash-based routes (or equivalent static-safe routing) so refreshing a view does not require a server rewrite.
+4. Bundle core UI dependencies and translation resources through npm. No feature may depend on a third-party script loaded from a CDN at runtime.
+5. Do not put API keys in source code, `VITE_*` variables, or generated JS bundles. Any key used by a browser is visible to users.
+6. Online market-data services are optional and may fail due to provider policy, rate limits, network conditions, or CORS. CSV import and clearly labeled demo data must still work when external data is unavailable.
+7. Do not introduce API endpoints, serverless functions, a database server, SSR, server-side secrets, or background scheduled jobs as required runtime dependencies.
+8. Deployment instructions must specify GitHub Actions and the `dist/` build output directory.
+9. Test the production build at the current site root (`https://cklee-99.github.io/`), not at `/quantfolio-lab/`. Verify navigation, CSS, translations, chart assets, and demo/CSV workflows as those features are implemented.
+10. A feature is not “GitHub Pages compatible” merely because `npm run build` succeeds. Verify that it has no runtime dependency on unavailable server functionality.
+
+### Future move to a project site
+
+If the owner later creates a separate repository named `quantfolio-lab`, the usual project-site URL will be `https://cklee-99.github.io/quantfolio-lab/`. Only after that move should Vite `base` and asset-path tests be updated for `/quantfolio-lab/`. Do not preemptively apply project-site paths to the current user-site deployment.
 
 ## 12. Implementation and Acceptance Checklist
 
@@ -452,7 +469,7 @@ Before merging UI changes, verify the relevant items:
 - [ ] Storage failures do not crash the app.
 - [ ] Keyboard focus, labels, contrast, and reduced-motion behavior are checked.
 - [ ] `npm run build` succeeds; relevant tests pass.
-- [ ] The production build has been checked with the `/quantfolio-lab/` path.
+- [ ] The production build has been checked at the current root-site deployment path (`/`, `https://cklee-99.github.io/`).
 - [ ] No secret, fake financial claim, or unverified event has been introduced.
 
 ## 13. Change Control

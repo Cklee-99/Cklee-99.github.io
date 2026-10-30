@@ -5,7 +5,11 @@
 ## 1. Project Identity
 
 - **Project name:** Quantfolio Lab
-- **Repository slug:** `quantfolio-lab`
+- **Repository name:** `Cklee-99.github.io`
+- **Repository URL:** `https://github.com/Cklee-99/Cklee-99.github.io`
+- **Published URL:** `https://cklee-99.github.io/`
+- **GitHub Pages site type:** User site (the repository name matches the GitHub account's `<owner>.github.io` naming convention). This is the root site, not a project site under `/quantfolio-lab/`.
+- **Product/repository slug for future standalone project hosting:** `quantfolio-lab` (not the current deployment repository name).
 - **Tagline:** Open-Source Quantitative Investing Playground
 - **Purpose:** An open-source, mobile-first web application for learning about US stock and ETF investing through historical data, deterministic trading strategies, technical indicators, and backtesting.
 - **Primary users:** Individual learners and developers researching quantitative investment strategies.
@@ -55,7 +59,7 @@ Initial stack:
 - TypeScript with strict compiler settings
 - Vite
 - Responsive CSS with reusable design tokens defined by `UI_UX_SPEC.md`
-- `i18next` and `react-i18next` with bundled `zh-TW` and `en` resources, subject to dependency compatibility checks
+- `i18next`/`react-i18next` plan replaced by a bundled local `translate(locale, key)` lookup (`src/i18n/index.ts`); keeps zero runtime dependencies and works offline on GitHub Pages.
 - Hash-based client-side routing suitable for GitHub Pages
 - TradingView Lightweight Charts for financial charts, subject to its current API and attribution requirements
 - Vitest for unit and integration tests
@@ -196,9 +200,22 @@ Use deterministic fixtures; do not use random mock prices in calculation tests. 
 
 ## 11. GitHub Pages Requirements
 
-The app must build as a static site and work under a repository subpath, not only at the domain root. Configure Vite's base path and GitHub Actions appropriately. Run tests before deployment. Document repository setup and deployment steps. Do not claim deployment occurred unless it was actually verified.
+### Current deployment target
 
-Do not push or change GitHub settings without explicit owner authorization.
+- Repository: `Cklee-99.github.io` (`https://github.com/Cklee-99/Cklee-99.github.io`).
+- Published site: `https://cklee-99.github.io/`.
+- This is a GitHub Pages **user site**, served from the domain root. Do not configure it as a project site.
+- Vite production `base` must remain `/` (or use Vite's default root base). Do not set it to `/quantfolio-lab/` for the current deployment.
+- GitHub Actions must run the locked npm install, checks/build as appropriate, upload the `dist/` directory as the Pages artifact, and deploy that artifact.
+- The workflow is expected under `.github/workflows/` and the Pages source is configured to use GitHub Actions. Inspect the actual file and Pages settings evidence before claiming they are correct.
+- Resolve assets using Vite-aware imports or `import.meta.env.BASE_URL`; avoid paths that assume a different deployment root.
+- Keep the app static: no runtime server, SSR, backend API, LLM API, or scheduled server job may be required.
+
+### Future hosting change
+
+If the owner later creates a separate repository named `quantfolio-lab` and deploys it as a GitHub Pages project site, its URL will normally be `https://cklee-99.github.io/quantfolio-lab/`. Only then should the production Vite `base` and asset-path tests be changed for `/quantfolio-lab/`. Do not make that change as part of the current work.
+
+Run relevant tests and a production build before deployment. Do not push, commit, or change remote GitHub settings without explicit owner authorization.
 
 ## 12. Milestone Roadmap
 
@@ -207,17 +224,18 @@ Do not push or change GitHub settings without explicit owner authorization.
 - [x] Owner reports Node.js v22.23.4 and npm v10.9.9.
 - [x] Owner reports Vite React TypeScript scaffold created in `quantfolio-lab`.
 - [x] Owner reports completing the local setup/build verification step. Exact command output was not included in the conversation; re-run checks before relying on the result.
-- [x] Place `AGENTS.md` and `UI_UX_SPEC.md` at the repository root and verify both are tracked locally.
+- [x] Place `AGENTS.md` and `UI_UX_SPEC.md` at the repository root (owner-provided screenshot shows both files at the root; local tracking status should still be checked by the agent).
+- [x] Configure and deploy the static Vite build through GitHub Actions to `https://cklee-99.github.io/` (owner reports deployment succeeded; the next agent should inspect the workflow and re-run the build rather than claiming independent verification).
 
 ### Milestone 1 — Foundation and Responsive Shell
 
-- [ ] Read `UI_UX_SPEC.md` and inspect/validate the scaffold before editing.
-- [ ] Implement reusable CSS tokens from `UI_UX_SPEC.md`.
-- [ ] Implement the mobile-first app shell and static-safe navigation.
-- [ ] Implement the simulation configuration form and validation.
-- [ ] Add empty, loading, and error states.
-- [ ] Add bundled `zh-TW` and `en` localization foundations.
-- [ ] Verify type checking, tests, and production build.
+- [x] Read `UI_UX_SPEC.md` and inspect/validate the scaffold before editing.
+- [x] Implement reusable CSS tokens from `UI_UX_SPEC.md` (`src/styles/tokens.css`).
+- [x] Implement the mobile-first app shell and static-safe navigation (`AppShell` with hash-based `router`).
+- [x] Implement the simulation configuration form and validation (`BacktestView` wired to pure `validateBacktestConfig`).
+- [x] Add empty, loading, and error states (`StatusBanner`, unavailable/metric-none labels).
+- [x] Add bundled `zh-TW` and `en` localization foundations (local `translate(locale, key)` lookup; no runtime fetch).
+- [x] Verify type checking, tests, and production build (`npm run build`, `npm run lint`, `npm run test` — see Current Status).
 
 ### Milestone 2 — Data and Indicators
 
@@ -249,17 +267,18 @@ Do not push or change GitHub settings without explicit owner authorization.
 - [ ] Add optional market-event import.
 - [ ] Complete README, license, and disclaimer.
 - [ ] Run complete tests and production build.
-- [ ] Validate GitHub Pages build configuration.
+- [x] Configure the current GitHub Pages user-site deployment using the root URL and `dist/` build artifact (owner reports deployment succeeded; future changes must re-validate it).
 - [ ] Obtain explicit authorization before pushing or changing remote settings.
 
 ## 13. Current Status
 
-- **Current milestone:** Milestone 1 — Foundation and Responsive Shell.
-- **Project implementation status:** Owner reports completing the local Vite scaffold setup and build step. The exact terminal output is not recorded here, so the agent must verify the current project state and run the production build before making assumptions.
-- **Current verified tests:** No test output has been provided in this file.
-- **Current blocker:** Ensure `AGENTS.md` and `UI_UX_SPEC.md` are both present at the repository root; inspect `package.json`, the working tree, and current files first.
-- **Next task:** Verify the scaffold and implement Milestone 1 only, following `UI_UX_SPEC.md`.
-- **Important:** Do not rerun Vite scaffolding over the existing project. Do not overwrite meaningful files without inspection.
+- **Current milestone:** Milestone 1 — Foundation and Responsive Shell is complete and verified through local type-check, lint, tests, and a production build.
+- **Project implementation status:** The owner reports the Vite React TypeScript scaffold and GitHub Pages deployment succeeded. Independently verified this session: `npm run build` (tsc + vite) passes, `npm run lint` passes, and `npm run test` passes with 6 deterministic Vitest cases for `validateBacktestConfig`.
+- **Current deployment:** `Cklee-99.github.io` → `https://cklee-99.github.io/`, a user site at the domain root. Keep Vite `base` at `/` (or its default). GitHub Actions publishes the `dist/` build artifact.
+- **Current verified tests:** `npm run test` (Vitest v3.2.7) — 6/6 pass: valid config accepted; invalid ticker/capital/dates/allocation/fee/slippage/benchmark rejected. `npm run build` passes; `npm run lint` passes.
+- **Current blocker:** None.
+- **Next task:** Milestone 2 — Data and Indicators: define normalized market-data types and provider interface, deterministic demonstration fixtures, CSV import/validation, MA/Bollinger/RSI/candlestick indicators with unit tests.
+- **Important:** Do not rerun Vite scaffolding, change Vite `base` to `/quantfolio-lab/`, or overwrite meaningful files without inspection.
 
 ## 14. Known Issues and Resolutions
 
@@ -270,11 +289,30 @@ Record issues using this format:
 - **Root cause:** Confirmed cause, or `Unconfirmed` if not proven.
 - **Resolution:** The actual fix applied, or `Pending`.
 - **Verification:** Exact command or test and its result.
+
+- **Issue:** GitHub Pages initially displayed a blank page after the source repository was pushed.
+  - **Observed evidence:** The owner reported that the workflow showed deployment success but `https://cklee-99.github.io/` appeared blank. Earlier diagnosis found that the entry HTML referenced `/src/main.tsx`, which is a development entry rather than a production bundle, and the repository did not initially include the intended Vite build/deploy workflow.
+  - **Root cause:** GitHub Pages was not serving a correctly built Vite production artifact.
+  - **Resolution:** Add a GitHub Actions workflow to run the npm install/build and deploy `dist/`; configure Pages to use GitHub Actions.
+  - **Verification:** The owner subsequently reported deployment succeeded. The agent must inspect `.github/workflows/` and re-run `npm run build` before asserting the setup remains valid.
+
 - **Issue:** Vite scaffold dependency resolution failed during initial setup.
   - **Observed evidence:** npm reported `ERESOLVE`; the scaffold selected `typescript@7.0.2`, while `typescript-eslint@8.72.1` declared peer support for TypeScript `<6.1.0`.
   - **Root cause:** Incompatible TypeScript and typescript-eslint peer dependency ranges in the generated dependency tree.
   - **Resolution:** The owner was instructed to set `devDependencies.typescript` to `~6.0.2` and run `npm install` again.
   - **Verification:** The owner subsequently reported completing Step 4. The exact install/build output was not provided here, so re-run `npm install` if needed and verify `npm run build` before relying on this as independently confirmed.
+
+- **Issue:** BacktestView form structure was broken by multi-step editor assembly.
+  - **Observed evidence:** `npm run build` reported TS2657/TS17002/TS1128 — JSX expressions without one parent element; the file contained interleaved, duplicated fragments.
+  - **Root cause:** Sequential append/insert edits across an 8 KB target exceeded tool size limits and left content misordered.
+  - **Resolution:** Deleted the file and rebuilt it from a clean two-part edit: imports/component header/required fields, then advanced section/status/actions/closing tags. Verified no duplicated sections remain.
+  - **Verification:** `npm run build` passes; `npm run lint` passes.
+
+- **Issue:** Locale strategy keys did not match strategy ids.
+  - **Observed evidence:** BacktestView rendered `t('backtest.strategy.' + option.id)` with ids like `trend_following`, while locale bundles used keys like `backtest.strategy.trendFollowing`, so `translate` fell back to the raw key on screen.
+  - **Root cause:** Key naming (camelCase) diverged from `STRATEGIES` id naming (snake_case).
+  - **Resolution:** Renamed both `en` and `zh-TW` strategy and purpose keys to snake_case matching the ids.
+  - **Verification:** `npm run build` and `npm run lint` pass; strategy labels now resolve via the local bundle.
 
 Do not invent additional issues or claim verification that has not been observed.
 
@@ -289,6 +327,8 @@ Do not invent additional issues or claim verification that has not been observed
 - **D-007:** Use this `AGENTS.md` as the source of truth for project instructions and progress. AI tools that do not automatically load it must be explicitly asked to read it before working.
 - **D-008:** Use `UI_UX_SPEC.md` as the shared UI/UX design contract across AI tools; any approved global design change must update that file.
 - **D-009:** Use bundled `zh-TW` and `en` translations, system-first fonts, local npm dependencies, and static-safe hash routing so the UI does not depend on runtime CDNs or server rewrites.
+- **D-010:** The current deployment is the GitHub Pages user site repository `Cklee-99.github.io`, published at `https://cklee-99.github.io/`; Vite's production base is `/`, and GitHub Actions deploys the `dist/` artifact. `/quantfolio-lab/` is only relevant if a separate project-site repository is created later.
+- **D-011:** Localization uses a bundled `Record<string, string>` lookup (`translate(locale, key)` with English fallback) instead of runtime `i18next`; this keeps zero runtime dependencies and works offline on GitHub Pages. Custom attribute names (e.g. `<div data-theme="dark">`) drive CSS theme switching, so `strategy` label keys follow `Option.id` snake_case to avoid raw-key rendering.
 
 ## 16. Task Acceptance Template
 
@@ -303,3 +343,20 @@ For each completed task, update the status in this file using:
 - **Next task:**
 
 Never mark an item complete based only on generated code or visual inspection when a relevant test/build could be run.
+
+### Milestone 1 Acceptance
+
+- **Task:** Implement Milestone 1 — Foundation and Responsive Shell.
+- **Status:** `Complete` (verified by build/lint/test this session).
+- **Files changed:**
+  - `src/App.tsx`, `src/main.tsx`
+  - `src/components/{AppShell,Footer,Header,LangSwitcher,Nav,StatusBanner,ThemeToggle}.tsx`
+  - `src/views/{Analysis,BacktestView,More,Overview}.tsx`
+  - `src/i18n/index.ts`, `src/i18n/locales/en/*`, `src/i18n/locales/zh-TW/*`
+  - `src/nav-data.ts`
+  - `src/config/validate.config.test.ts`, `src/styles/app.css`
+  - `package.json` (added Vitest + `test` script)
+- **Commands executed:** `npm run build` (tsc -b && vite build), `npm run lint`, `npm run test`.
+- **Verification results:** Build passes (48 modules, gzip 75.57 kB JS); lint passes (no errors); `npm run test` — 6/6 Vitest cases pass for `validateBacktestConfig`.
+- **Known limitations:** Charts/indicators/engine remain `unavailable` in this milestone by design. No browser-to-localStorage or IndexedDB persistence tests yet. zh-TW/en key parity verified by review, not by an automated snapshot test.
+- **Next task:** Milestone 2 — Data and Indicators.
