@@ -208,6 +208,7 @@ Use deterministic fixtures; do not use random mock prices in calculation tests. 
 - Vite production `base` must remain `/` (or use Vite's default root base). Do not set it to `/quantfolio-lab/` for the current deployment.
 - GitHub Actions must run the locked npm install, checks/build as appropriate, upload the `dist/` directory as the Pages artifact, and deploy that artifact.
 - The workflow is expected under `.github/workflows/` and the Pages source is configured to use GitHub Actions. Inspect the actual file and Pages settings evidence before claiming they are correct.
+- The current workflow runs quality gates `npm run lint` and `npm run test` after `npm ci` and before the production build (`npm run build`, which also runs the TypeScript compiler via `tsc -b`). Deployment only occurs after lint, test, and build succeed. `actions/checkout` uses `persist-credentials: false` because no later workflow step needs Git checkout credentials.
 - Resolve assets using Vite-aware imports or `import.meta.env.BASE_URL`; avoid paths that assume a different deployment root.
 - Keep the app static: no runtime server, SSR, backend API, LLM API, or scheduled server job may be required.
 
@@ -272,11 +273,11 @@ Run relevant tests and a production build before deployment. Do not push, commit
 
 ## 13. Current Status
 
-- **Current milestone:** Milestone 1 — Foundation and Responsive Shell is complete and verified through local type-check, lint, tests, and a production build.
-- **Project implementation status:** The owner reports the Vite React TypeScript scaffold and GitHub Pages deployment succeeded. Independently verified this session: `npm run build` (tsc + vite) passes, `npm run lint` passes, and `npm run test` passes with 6 deterministic Vitest cases for `validateBacktestConfig`.
-- **Current deployment:** `Cklee-99.github.io` → `https://cklee-99.github.io/`, a user site at the domain root. Keep Vite `base` at `/` (or its default). GitHub Actions publishes the `dist/` build artifact.
-- **Current verified tests:** `npm run test` (Vitest v3.2.7) — 6/6 pass: valid config accepted; invalid ticker/capital/dates/allocation/fee/slippage/benchmark rejected. `npm run build` passes; `npm run lint` passes.
-- **Current blocker:** None.
+- **Current milestone:** Milestone 1 — Foundation and Responsive Shell (including the post-acceptance code-review fixes), plus Milestone 1.2 — Deployment and Quality Gate Hardening, are verified. Milestone 2 remains unstarted.
+- **Project implementation status:** Milestone 1 code-review fixes are implemented and verified. This session ran all four quality-gate commands in one background chain and captured their output (`verify_all.capture`): `npm ci`, `npm run lint` (clean), `npm run test` (10/10), and `npm run build` (48 modules, gzip JS 75.83 kB). `vite.config.ts` now sets `base: '/'` explicitly, and `.github/workflows/deploy.yml` runs lint/test quality gates before the build and uses `actions/checkout` with `persist-credentials: false`.
+- **Current deployment:** `Cklee-99.github.io` → `https://cklee-99.github.io/`, a user site at the domain root. Vite production `base` is `/` (set explicitly in `vite.config.ts`). GitHub Actions publishes the `dist/` build artifact after lint/test/build success.
+- **Current verified tests:** `npm run test` (Vitest v3.2.7) — 10/10 pass, confirmed this session from captured output (`verify_all.capture`): `select.config.test.ts` (4 tests) + `validate.config.test.ts` (6 tests). `npm run lint` passes (clean output). `npm run build` passes this session (48 modules transformed, `✓ built in 870ms`, gzip JS 75.83 kB); the production entry `dist/index.html` references `/assets/index-BRSBjsYM.js` and `/assets/index-QxYnqvOf.css`, confirming the root-site base `/`.
+- **Current blocker:** None. All four quality-gate commands (`npm ci`, `npm run lint`, `npm run test`, `npm run build`) were re-verified and completed this session.
 - **Next task:** Milestone 2 — Data and Indicators: define normalized market-data types and provider interface, deterministic demonstration fixtures, CSV import/validation, MA/Bollinger/RSI/candlestick indicators with unit tests.
 - **Important:** Do not rerun Vite scaffolding, change Vite `base` to `/quantfolio-lab/`, or overwrite meaningful files without inspection.
 
@@ -313,6 +314,12 @@ Record issues using this format:
   - **Root cause:** Key naming (camelCase) diverged from `STRATEGIES` id naming (snake_case).
   - **Resolution:** Renamed both `en` and `zh-TW` strategy and purpose keys to snake_case matching the ids.
   - **Verification:** `npm run build` and `npm run lint` pass; strategy labels now resolve via the local bundle.
+
+- **Issue:** Shell terminal stops reporting command completion mid-run, leaving outputs unwritten.
+  - **Observed evidence:** `npm run build > build.out 2>&1` produced an empty `build.out` and repeated foreground commands returned `Command completion could not be observed`; `test.out` initially captured only the vitest header until a later full run wrote the complete report.
+  - **Root cause:** `Unconfirmed` — environmental/terminal capturer behavior during long-running npm commands, not a code defect.
+  - **Resolution:** Re-ran commands with output redirected to files and read the files back; `npm run test` output was finally captured (2 files / 10 tests passed) and `npm run lint` output was clean. This session confirmed that chaining all four quality-gate commands in one shell block (`{ echo '--- npm ci ---'; npm ci; ... ; echo '--- ALL DONE ---'; } > verify_all.capture 2>&1`) and reading that single file back is the reliable workaround: the file shows the `--- ALL DONE ---` sentinel proving the whole chain completed. Do not issue another foreground `run_commands` while a chain is still writing its capture file, because a new foreground command can stop the still-running chain.
+  - **Verification:** `verify_all.capture` records `npm ci` (added 201 packages, audited 202 in 24s), `npm run lint` (`> eslint .`, no errors), `npm run test` (`Test Files 2 passed (2)`, `Tests 10 passed (10)`), `npm run build` (`48 modules transformed`, gzip JS 75.83 kB), ending with the `--- ALL DONE ---` sentinel.
 
 Do not invent additional issues or claim verification that has not been observed.
 
@@ -360,3 +367,33 @@ Never mark an item complete based only on generated code or visual inspection wh
 - **Verification results:** Build passes (48 modules, gzip 75.57 kB JS); lint passes (no errors); `npm run test` — 6/6 Vitest cases pass for `validateBacktestConfig`.
 - **Known limitations:** Charts/indicators/engine remain `unavailable` in this milestone by design. No browser-to-localStorage or IndexedDB persistence tests yet. zh-TW/en key parity verified by review, not by an automated snapshot test.
 - **Next task:** Milestone 2 — Data and Indicators.
+
+### Milestone 1 Code-Review Fixes (post-acceptance, implemented this session)
+
+- **Task:** Apply requested Milestone 1 code-review fixes without starting Milestone 2 or committing/pushing.
+- **Status:** Implemented; full re-verification was attempted but shell commands could not be observed to complete in this session (environmental terminal issue), so build/lint/test results below are from the prior completed session unless re-run successfully.
+- **Files changed:**
+  - `src/views/BacktestView.tsx` — form submit now uses a typed `handleSubmit(event: FormEvent<HTMLFormElement>)` that calls `event.preventDefault()`; validation errors/status remain visible after submit. Every input got an `id` with a matching `htmlFor` label and `aria-invalid`. Date inputs use `type="date"`; numeric inputs use `type="number"` with `min`/`max`/`step`. Strategy and fractional-share buttons now get explicit `option-button active` classes and `aria-pressed`. The advanced toggle now carries `aria-expanded` and `aria-controls="advanced-settings"`, and the advanced section is wrapped in `<div id="advanced-settings">`.
+  - `src/components/Nav.tsx` — desktop and mobile bottom-nav buttons now use `className={route === active ? 'nav-link active' : 'nav-link'}`; `aria-current="page"` preserved.
+  - `src/styles/app.css` — added `.option-button.active`; added `safe-area-inset-bottom` to bottom-nav padding; added mobile `.app` bottom padding (`64px + safe-area-inset-bottom`) under `max-width: 479px`; `.app-header` wraps on small screens.
+  - `index.html` — viewport meta now includes `viewport-fit=cover`.
+  - `src/config/backtest.ts` — added pure helpers `selectStrategy(config, strategy)` and `setFractionalShares(config, fractionalShares)` that preserve every other form value and never mutate the input.
+  - `src/config/select.config.test.ts` (new) — 4 deterministic Vitest cases for the two helpers.
+  - `UI_UX_SPEC.md` — removed two outdated `i18next`/`react-i18next` references; replaced them with the bundled `translate(locale, key)` description.
+- **Commands executed this session:** `npm run test > test.out 2>&1` (output captured and read back: 2 files, 10 tests passed), `npm run lint > lint.out 2>&1` (clean, no errors), `npm run build > build.out 2>&1` (attempted; `build.out` remained empty and completion was not observed due to an environmental terminal timeout).
+- **Verification results:** `npm run test` — 10/10 pass, confirmed this session from captured `test.out` (select 4 + validate 6). `npm run lint` passes (clean output captured). `npm run build` re-run could not be observed to complete this session (environmental terminal timeout); prior completed session recorded build pass (48 modules, gzip 75.57 kB JS), so the 4 new selection tests are the newly confirmed cases this session.
+- **Known limitations:** Client-side mobile layout at 320/360/390 px not visually verified this session; no horizontal-overflow regression test exists yet. Browser persistence (localStorage/IndexedDB) still unverified.
+- **Next task:** Verify the re-verification commands (`npm run test`, `npm run lint`, `npm run build`) when the terminal is available, then proceed to Milestone 2 — Data and Indicators.
+
+### Milestone 1.2 — Deployment and Quality Gate Hardening
+
+- **Task:** Make the GitHub Pages deployment configuration explicit, add lint/test quality gates to the deploy workflow, verify `package.json` scripts, inspect temporary `.out` files, reconcile documentation, and re-run all quality-gate commands. Do not start Milestone 2, commit, push, or deploy.
+- **Status:** `Complete` (verified this session).
+- **Files changed:**
+  - `vite.config.ts` — added explicit `base: '/'` (root-site user-site deployment) with a one-line comment; `@vitejs/plugin-react` plugin and existing config preserved. Do not use `/quantfolio-lab/`.
+  - `.github/workflows/deploy.yml` — added `with: persist-credentials: false` to the pinned `actions/checkout` step (no later step needs checkout credentials); added `Lint` (`npm run lint`) and `Test` (`npm run test`) steps after `Install dependencies` (`npm ci`) and before `Build application` (`npm run build`, which already runs `tsc -b`). Preserved: Node.js 22, npm dependency caching, GitHub Pages permissions/env, `dist/` artifact path, concurrency config, triggers (`main` push + `workflow_dispatch`), and all pinned Action commit SHAs (checkout v7, setup-node v7, configure-pages v6, upload-pages-artifact v5, deploy-pages v5). No `pull_request` trigger added.
+  - `AGENTS.md` — updated section 11 (quality-gate description), section 13 Current Status (build re-verified; base `/` explicit), section 14 (terminal-timeout Known Issue updated with the successful one-block chain workaround), and this Milestone 1.2 acceptance entry.
+- **Commands executed:** One chained block written to `verify_all.capture` (new temp file, not the existing `.out` files): `npm ci`, `npm run lint`, `npm run test`, `npm run build`, ending with an `ALL DONE` sentinel.
+- **Verification results:** `npm ci` succeeded (added 201 packages, audited 202 in 24s). `npm run lint` passes (`> eslint .`, no errors). `npm run test` passes (Vitest v3.2.7, `Test Files 2 passed (2)`, `Tests 10 passed (10)`). `npm run build` passes (`tsc -b && vite build`, 48 modules transformed, `✓ built in 870ms`, gzip JS 75.83 kB). `dist/index.html` references `/assets/index-BRSBjsYM.js` and `/assets/index-QxYnqvOf.css` — root-absolute asset paths confirming the root-site base `/` (no `/quantfolio-lab/`). The `--- ALL DONE ---` sentinel confirms the whole chain completed.
+- **Known limitations:** The deployed site (`https://cklee-99.github.io/`) itself was not re-verified in this session (no push/deploy authorized); the workflow change will take effect on the next deploy. Temporary `.out` files are untracked and not staged. `git status` shows no staged files.
+- **Next task:** Milestone 2 — Data and Indicators (unchanged).

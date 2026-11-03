@@ -98,7 +98,9 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-2);
-  padding-block: calc(var(--space-2) + 4px);
+  padding-top: var(--space-2);
+  padding-inline: var(--space-3);
+  padding-bottom: calc(var(--space-2) + 4px + safe-area-inset-bottom);
 }
 .bottom-nav .nav-link {
   min-height: 44px;
@@ -295,6 +297,13 @@
   .metrics-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  /* Mobile: keep the fixed bottom nav clear of content and tolerate phone insets. */
+  .app {
+    padding-bottom: calc(64px + safe-area-inset-bottom);
+  }
+  .app-header {
+    flex-wrap: wrap;
+  }
 }
 @media (min-width: 480px) {
   .bottom-nav {
@@ -338,6 +347,11 @@
 }
 .option-button:hover {
   background: var(--color-surface-hover);
+}
+.option-button.active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
 }
 .strategy-purpose {
   font-size: var(--font-size-sm);

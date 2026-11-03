@@ -106,3 +106,11 @@ export function validateBacktestConfig(config: BacktestConfig): ValidationResult
 
   return { valid: Object.keys(errors).length === 0, errors }
 }
+
+export function selectStrategy(config: BacktestConfig, strategy: StrategyId): BacktestConfig {
+  return { ...config, strategy }
+}
+
+export function setFractionalShares(config: BacktestConfig, fractionalShares: boolean): BacktestConfig {
+  return { ...config, fractionalShares }
+}

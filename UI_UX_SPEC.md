@@ -34,7 +34,7 @@ Use the existing project stack. Do not replace it without documenting the reason
 - **Build tool:** Vite.
 - **Styles:** Local CSS with shared CSS custom properties; avoid inline one-off visual values when a design token exists.
 - **Financial charts:** `lightweight-charts`, installed from npm and bundled into the static build. Follow the installed version's current API and license/attribution notice.
-- **Localization:** `i18next` + `react-i18next`, with translation resources bundled locally. Do not fetch translation JSON from a runtime server.
+- **Localization:** Bundled `zh-TW` and `en` translation tables with a local `translate(locale, key)` lookup (English fallback). No runtime translation framework or JSON fetch. Do not add `i18next`/`react-i18next`.
 - **Date/number formatting:** Native `Intl.DateTimeFormat` and `Intl.NumberFormat` unless a documented edge case justifies a dependency.
 - **Automated tests:** Vitest and the project's selected React testing tools.
 - **Client storage:** `localStorage` for small preferences; IndexedDB for larger structured market data and saved simulation records.
@@ -296,7 +296,7 @@ Include:
 
 ## 7. Localization and Formatting
 
-Use `i18next` and `react-i18next` with resources bundled in the application. The default locale is `zh-TW`; English is `en`.
+Use the bundled local `translate(locale, key)` lookup with `zh-TW` and `en` tables. The default locale is `zh-TW`; English is `en`. Do not introduce `i18next`/`react-i18next`; translation resources are bundled and resolved offline.
 
 Suggested structure:
 

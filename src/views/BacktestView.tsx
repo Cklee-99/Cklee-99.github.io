@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import type { Locale } from '../state/prefs'
 import { translate } from '../i18n/index'
 import {
@@ -9,8 +9,15 @@ import {
   DEFAULT_INITIAL_CAPITAL,
   DEFAULT_SLIPPAGE,
   DEFAULT_TICKER,
+  MAX_ALLOCATION,
+  MAX_CAPITAL,
+  MAX_FEE_RATE,
+  MAX_SLIPPAGE,
+  MAX_TICKER_LENGTH,
   STRATEGIES,
   validateBacktestConfig,
+  selectStrategy,
+  setFractionalShares,
   defaultEndDate,
   defaultStartDate,
 } from '../config/backtest'
@@ -49,7 +56,9 @@ export function BacktestView({ locale }: { locale: Locale }) {
     return t(`backtest.errors.${code}`)
   }
 
-  const save = () => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    // Prevent the browser's native submit navigation so the page never reloads.
+    event.preventDefault()
     const result = validateBacktestConfig(config)
     setErrors(result.errors)
     setStatus(result.valid ? 'valid' : 'invalid')
@@ -59,14 +68,18 @@ export function BacktestView({ locale }: { locale: Locale }) {
     <section className="panel">
       <h1 className="panel-heading">{t('backtest.title')}</h1>
       <StatusBanner locale={locale} />
-      <form className="sim-form" onSubmit={save}>
+      <form className="sim-form" onSubmit={handleSubmit}>
         <h2 className="form-section-title">{t('backtest.section.required')}</h2>
 
         <div className="field">
-          <label className="field-label">{t('backtest.field.ticker')}</label>
+          <label className="field-label" htmlFor="ticker">{t('backtest.field.ticker')}</label>
           <input
             className="text-field"
+            id="ticker"
             name="ticker"
+            type="text"
+            maxLength={MAX_TICKER_LENGTH}
+            aria-invalid={errors.ticker ? 'true' : undefined}
             value={config.ticker}
             onChange={(e) => setConfig({ ...config, ticker: e.target.value })}
           />
@@ -79,8 +92,9 @@ export function BacktestView({ locale }: { locale: Locale }) {
             <button
               type="button"
               key={option.id}
-              className="option-button"
-              onClick={() => setConfig({ ...config, strategy: option.id })}
+              className={config.strategy === option.id ? 'option-button active' : 'option-button'}
+              aria-pressed={config.strategy === option.id}
+              onClick={() => selectStrategy(config, option.id)}
             >
               {t(`backtest.strategy.${option.id}`)}
             </button>
@@ -90,10 +104,16 @@ export function BacktestView({ locale }: { locale: Locale }) {
         </div>
 
         <div className="field">
-          <label className="field-label">{t('backtest.field.capital')}</label>
+          <label className="field-label" htmlFor="initialCapital">{t('backtest.field.capital')}</label>
           <input
             className="text-field"
+            id="initialCapital"
             name="initialCapital"
+            type="number"
+            min={1}
+            max={MAX_CAPITAL}
+            step={1}
+            aria-invalid={errors.initialCapital ? 'true' : undefined}
             value={config.initialCapital}
             onChange={(e) => setConfig({ ...config, initialCapital: numInput(e.target.value) })}
           />
@@ -103,20 +123,26 @@ export function BacktestView({ locale }: { locale: Locale }) {
         </div>
 
         <div className="field">
-          <label className="field-label">{t('backtest.field.start')}</label>
+          <label className="field-label" htmlFor="startDate">{t('backtest.field.start')}</label>
           <input
             className="text-field"
+            id="startDate"
             name="startDate"
+            type="date"
+            aria-invalid={errors.dates ? 'true' : undefined}
             value={config.startDate}
             onChange={(e) => setConfig({ ...config, startDate: e.target.value })}
           />
         </div>
 
         <div className="field">
-          <label className="field-label">{t('backtest.field.end')}</label>
+          <label className="field-label" htmlFor="endDate">{t('backtest.field.end')}</label>
           <input
             className="text-field"
+            id="endDate"
             name="endDate"
+            type="date"
+            aria-invalid={errors.dates ? 'true' : undefined}
             value={config.endDate}
             onChange={(e) => setConfig({ ...config, endDate: e.target.value })}
           />
@@ -127,6 +153,8 @@ export function BacktestView({ locale }: { locale: Locale }) {
         <button
           type="button"
           className="collapse-button"
+          aria-expanded={advancedOpen}
+          aria-controls="advanced-settings"
           onClick={() => setAdvancedOpen(!advancedOpen)}
         >
           {t('backtest.section.advanced')}
@@ -134,12 +162,16 @@ export function BacktestView({ locale }: { locale: Locale }) {
         <span className="field-note">{t('backtest.section.advancedHint')}</span>
 
         {advancedOpen && (
-          <>
+          <div className="advanced-settings" id="advanced-settings">
             <div className="field">
-              <label className="field-label">{t('backtest.field.benchmark')}</label>
+              <label className="field-label" htmlFor="benchmark">{t('backtest.field.benchmark')}</label>
               <input
                 className="text-field"
+                id="benchmark"
                 name="benchmark"
+                type="text"
+                maxLength={MAX_TICKER_LENGTH}
+                aria-invalid={errors.benchmark ? 'true' : undefined}
                 value={config.benchmark}
                 onChange={(e) => setConfig({ ...config, benchmark: e.target.value })}
               />
@@ -149,10 +181,16 @@ export function BacktestView({ locale }: { locale: Locale }) {
             </div>
 
             <div className="field">
-              <label className="field-label">{t('backtest.field.allocation')}</label>
+              <label className="field-label" htmlFor="allocation">{t('backtest.field.allocation')}</label>
               <input
                 className="text-field"
+                id="allocation"
                 name="allocation"
+                type="number"
+                min={0}
+                max={MAX_ALLOCATION}
+                step={0.01}
+                aria-invalid={errors.allocation ? 'true' : undefined}
                 value={config.allocation}
                 onChange={(e) => setConfig({ ...config, allocation: numInput(e.target.value) })}
               />
@@ -162,10 +200,16 @@ export function BacktestView({ locale }: { locale: Locale }) {
             </div>
 
             <div className="field">
-              <label className="field-label">{t('backtest.field.fee')}</label>
+              <label className="field-label" htmlFor="feeRate">{t('backtest.field.fee')}</label>
               <input
                 className="text-field"
+                id="feeRate"
                 name="feeRate"
+                type="number"
+                min={0}
+                max={MAX_FEE_RATE}
+                step={0.0001}
+                aria-invalid={errors.feeRate ? 'true' : undefined}
                 value={config.feeRate}
                 onChange={(e) => setConfig({ ...config, feeRate: numInput(e.target.value) })}
               />
@@ -173,10 +217,16 @@ export function BacktestView({ locale }: { locale: Locale }) {
             </div>
 
             <div className="field">
-              <label className="field-label">{t('backtest.field.slippage')}</label>
+              <label className="field-label" htmlFor="slippage">{t('backtest.field.slippage')}</label>
               <input
                 className="text-field"
+                id="slippage"
                 name="slippage"
+                type="number"
+                min={0}
+                max={MAX_SLIPPAGE}
+                step={0.0001}
+                aria-invalid={errors.slippage ? 'true' : undefined}
                 value={config.slippage}
                 onChange={(e) => setConfig({ ...config, slippage: numInput(e.target.value) })}
               />
@@ -189,20 +239,22 @@ export function BacktestView({ locale }: { locale: Locale }) {
               <label className="field-label">{t('backtest.field.fractional')}</label>
               <button
                 type="button"
-                className="option-button"
-                onClick={() => setConfig({ ...config, fractionalShares: true })}
+                className={config.fractionalShares ? 'option-button active' : 'option-button'}
+                aria-pressed={config.fractionalShares}
+                onClick={() => setFractionalShares(config, true)}
               >
                 {t('backtest.field.fractionalYes')}
               </button>
               <button
                 type="button"
-                className="option-button"
-                onClick={() => setConfig({ ...config, fractionalShares: false })}
+                className={config.fractionalShares ? 'option-button' : 'option-button active'}
+                aria-pressed={!config.fractionalShares}
+                onClick={() => setFractionalShares(config, false)}
               >
                 {t('backtest.field.fractionalNo')}
               </button>
             </div>
-          </>
+          </div>
         )}
 
         <div className="status-row">

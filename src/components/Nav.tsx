@@ -13,7 +13,7 @@ export function PrimaryNav({ active, locale }: { active: Route; locale: Locale }
       {NAV_ROUTES.map(({ route, key }) => (
         <button
           type="button"
-          className="nav-link"
+          className={route === active ? 'nav-link active' : 'nav-link'}
           aria-current={route === active ? 'page' : undefined}
           onClick={() => select(route)}
         >
@@ -32,7 +32,7 @@ export function BottomNav({ active, locale }: { active: Route; locale: Locale })
       {NAV_ROUTES.map(({ route, key }) => (
         <button
           type="button"
-          className="nav-link"
+          className={route === active ? 'nav-link active' : 'nav-link'}
           aria-current={route === active ? 'page' : undefined}
           onClick={() => select(route)}
         >
