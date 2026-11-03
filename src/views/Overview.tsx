@@ -1,14 +1,15 @@
 import type { Locale } from '../state/prefs'
+import type { MarketDataset } from '../data/market'
 import { navigate } from '../router'
 import { StatusBanner } from '../components/StatusBanner'
 import { translate } from '../i18n/index'
 
-export function Overview({ locale }: { locale: Locale }) {
+export function Overview({ locale, dataset }: { locale: Locale; dataset: MarketDataset | null }) {
   const t = (key: string) => translate(locale, key)
   return (
     <section className="panel">
       <h1 className="panel-heading">{t('dashboard.title')}</h1>
-      <StatusBanner locale={locale} />
+      <StatusBanner locale={locale} dataset={dataset} />
       <div className="unavailable-notice">
         <span className="unavailable-label">{t('dashboard.engine.unavailable')}</span>
         <p>{t('dashboard.engine.unavailableBody')}</p>

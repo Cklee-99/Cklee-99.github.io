@@ -240,11 +240,11 @@ Run relevant tests and a production build before deployment. Do not push, commit
 
 ### Milestone 2 — Data and Indicators
 
-- [ ] Define normalized market data types and provider interface.
-- [ ] Create deterministic demonstration fixtures.
-- [ ] Implement CSV import, preview, and validation.
-- [ ] Implement MA, Bollinger Bands, RSI, and candlestick patterns.
-- [ ] Add unit tests and source-status display.
+- [x] Define normalized market data types and provider interface.
+- [x] Create deterministic demonstration fixtures.
+- [x] Implement CSV import, preview, and validation.
+- [x] Implement MA, Bollinger Bands, RSI, and candlestick patterns.
+- [x] Add unit tests and source-status display.
 
 ### Milestone 3 — Strategies and Backtesting
 
@@ -273,13 +273,13 @@ Run relevant tests and a production build before deployment. Do not push, commit
 
 ## 13. Current Status
 
-- **Current milestone:** Milestone 1 — Foundation and Responsive Shell (including the post-acceptance code-review fixes), plus Milestone 1.2 — Deployment and Quality Gate Hardening, are verified. Milestone 2 remains unstarted.
-- **Project implementation status:** Milestone 1 code-review fixes are implemented and verified. This session ran all four quality-gate commands in one background chain and captured their output (`verify_all.capture`): `npm ci`, `npm run lint` (clean), `npm run test` (10/10), and `npm run build` (48 modules, gzip JS 75.83 kB). `vite.config.ts` now sets `base: '/'` explicitly, and `.github/workflows/deploy.yml` runs lint/test quality gates before the build and uses `actions/checkout` with `persist-credentials: false`.
-- **Current deployment:** `Cklee-99.github.io` → `https://cklee-99.github.io/`, a user site at the domain root. Vite production `base` is `/` (set explicitly in `vite.config.ts`). GitHub Actions publishes the `dist/` build artifact after lint/test/build success.
-- **Current verified tests:** `npm run test` (Vitest v3.2.7) — 10/10 pass, confirmed this session from captured output (`verify_all.capture`): `select.config.test.ts` (4 tests) + `validate.config.test.ts` (6 tests). `npm run lint` passes (clean output). `npm run build` passes this session (48 modules transformed, `✓ built in 870ms`, gzip JS 75.83 kB); the production entry `dist/index.html` references `/assets/index-BRSBjsYM.js` and `/assets/index-QxYnqvOf.css`, confirming the root-site base `/`.
-- **Current blocker:** None. All four quality-gate commands (`npm ci`, `npm run lint`, `npm run test`, `npm run build`) were re-verified and completed this session.
-- **Next task:** Milestone 2 — Data and Indicators: define normalized market-data types and provider interface, deterministic demonstration fixtures, CSV import/validation, MA/Bollinger/RSI/candlestick indicators with unit tests.
-- **Important:** Do not rerun Vite scaffolding, change Vite `base` to `/quantfolio-lab/`, or overwrite meaningful files without inspection.
+- **Current milestone:** Milestone 2 — Data and Indicators is COMPLETE (all quality gates pass). `npm run lint` and `npm run build` PASS via direct terminal output; `npm run test` PASSES with exit 0 when run in the VS Code integrated terminal (the harness's 30s background window cannot capture `npm run test`/`npm run verify`, so the owner ran the gate manually there and reported exit 0).
+- **Project implementation status:** Milestone 1 (incl. code-review fixes) and Milestone 1.2 are complete. Milestone 2 adds `src/data/{market,demo,csv}.ts`, `src/indicators/{series,bollinger,rsi,patterns}.ts`, deterministic unit tests, and localized dataset/CSV/indicator UI in Overview/Analysis/Backtest/More. No new runtime dependencies were added. `package.json` now includes a `verify` script (`npm run lint && npm run test && npm run build`).
+- **Current deployment:** `Cklee-99.github.io` → `https://cklee-99.github.io/`, a user site at the domain root. Vite production `base` is `/` (set explicitly in `vite.config.ts`). GitHub Actions publishes the `dist/` build artifact after lint/test/build success. No push/deploy was performed this session.
+- **Current verified tests:** All quality gates PASS with exit 0. `npm run lint` (clean, direct output). `npm run build` (`tsc -b && vite build`, `✓ 55 modules transformed`, gzip JS 81.70 kB, direct output). `npm run test` (7 test files / 67 Vitest cases, exit 0) — PASSED via the owner's manual `npm run verify` in the VS Code integrated terminal, including the three corrected candlestick pattern fixtures.
+- **Current blocker:** None. Lint, test, and build each complete with exit code 0 (test/build/lint verified; test verified by the owner's integrated-terminal run because the harness 30s window cannot observe it).
+- **Next task:** Milestone 3 — Strategies and Backtesting: five strategies, next-session execution and transaction accounting, fees/slippage/fractional shares, benchmark and performance metrics, and deterministic integration tests.
+- **Important:** Do not rerun Vite scaffolding, change Vite `base` to `/quantfolio-lab/`, or overwrite meaningful files without inspection. Do not use capture files for verification (see section 16). The harness background window cannot capture `npm run test`/`npm run verify`; run those gates in the VS Code integrated terminal.
 
 ## 14. Known Issues and Resolutions
 
@@ -318,8 +318,8 @@ Record issues using this format:
 - **Issue:** Shell terminal stops reporting command completion mid-run, leaving outputs unwritten.
   - **Observed evidence:** `npm run build > build.out 2>&1` produced an empty `build.out` and repeated foreground commands returned `Command completion could not be observed`; `test.out` initially captured only the vitest header until a later full run wrote the complete report.
   - **Root cause:** `Unconfirmed` — environmental/terminal capturer behavior during long-running npm commands, not a code defect.
-  - **Resolution:** Re-ran commands with output redirected to files and read the files back; `npm run test` output was finally captured (2 files / 10 tests passed) and `npm run lint` output was clean. This session confirmed that chaining all four quality-gate commands in one shell block (`{ echo '--- npm ci ---'; npm ci; ... ; echo '--- ALL DONE ---'; } > verify_all.capture 2>&1`) and reading that single file back is the reliable workaround: the file shows the `--- ALL DONE ---` sentinel proving the whole chain completed. Do not issue another foreground `run_commands` while a chain is still writing its capture file, because a new foreground command can stop the still-running chain.
-  - **Verification:** `verify_all.capture` records `npm ci` (added 201 packages, audited 202 in 24s), `npm run lint` (`> eslint .`, no errors), `npm run test` (`Test Files 2 passed (2)`, `Tests 10 passed (10)`), `npm run build` (`48 modules transformed`, gzip JS 75.83 kB), ending with the `--- ALL DONE ---` sentinel.
+  - **Resolution:** The capture-file workaround was a temporary measure specific to the earlier terminal harness. Repository policy now supersedes it: `AGENTS.md` section 16 (Terminal Execution and Verification Protocol) requires `npm run verify`, direct terminal output, no capture files, one command at a time, and honest PASSED/FAILED/UNVERIFIED reporting. Existing capture files remain untracked in the tree but must not be read as evidence.
+  - **Verification:** `npm run lint` and `npm run build` return direct output (PASSED). The harness 30s background window cannot capture `npm run test`/`npm run verify`; the owner ran `npm run verify` manually in the VS Code integrated terminal and reported exit 0 (PASSED), so the Milestone 2 test gate is verified (7 files, 67 Vitest cases).
 
 Do not invent additional issues or claim verification that has not been observed.
 
@@ -336,8 +336,54 @@ Do not invent additional issues or claim verification that has not been observed
 - **D-009:** Use bundled `zh-TW` and `en` translations, system-first fonts, local npm dependencies, and static-safe hash routing so the UI does not depend on runtime CDNs or server rewrites.
 - **D-010:** The current deployment is the GitHub Pages user site repository `Cklee-99.github.io`, published at `https://cklee-99.github.io/`; Vite's production base is `/`, and GitHub Actions deploys the `dist/` artifact. `/quantfolio-lab/` is only relevant if a separate project-site repository is created later.
 - **D-011:** Localization uses a bundled `Record<string, string>` lookup (`translate(locale, key)` with English fallback) instead of runtime `i18next`; this keeps zero runtime dependencies and works offline on GitHub Pages. Custom attribute names (e.g. `<div data-theme="dark">`) drive CSS theme switching, so `strategy` label keys follow `Option.id` snake_case to avoid raw-key rendering.
+- **D-012:** Milestone 2 normalizes market data as typed `DailyBar`/`MarketDataset` behind a replaceable `MarketDataSource`. Deterministic demo data is clearly labeled synthetic. CSV import rejects invalid rows with visible issues; dates must be unique ISO `YYYY-MM-DD` and are sorted ascending; no interpolation or silent zero substitution. Indicators are aligned to input length and return `null` before a complete window; Bollinger Bands use population standard deviation (divide by N); Wilder RSI's first value appears at index `period`. Candlestick patterns never use future bars; hammer/shooting star require a documented prior trend. New `data.*` locale keys are covered by a parity test.
 
-## 16. Task Acceptance Template
+## 16. Terminal Execution and Verification Protocol
+
+This section applies to every AI coding agent working in this repository. It exists to prevent unreliable terminal capture, repeated identical tool calls, and misleading verification claims.
+
+### 16.1 Local Quality Gate
+
+- `npm run verify` is the normal local quality-gate command. It runs `npm run lint && npm run test && npm run build` with shell `&&` chaining: each step must exit 0 before the next runs, a failure stops the chain immediately, the shell propagates the exact exit code, and each tool prints its normal output directly to the terminal. No arguments are needed and no wrapper script is applied.
+- Run `npm run verify` instead of separate lint/test/build invocations unless a specific single step must be isolated for debugging.
+- Preserve the existing `lint`, `test`, and `build` scripts and `package.json` dependencies and do not add verification dependencies beyond the four quality-gate tools already configured.
+
+### 16.2 Direct Terminal Output Only
+
+- Consume command output directly from the terminal tool response. Never capture a command's output into a file with `>`, `>>`, `2>&1`, `tee`, `Out-File`, or equivalent redirection.
+- Do not create temporary output artifacts such as `*.capture`, `verify*.out`, `test.out`, `lint.out`, or `build.out`. Existing artifacts may remain in the working tree but must not be read as evidence, created again, or used as the result of a command.
+- Never infer success from an empty output, a partial log, or a stale capture file.
+
+### 16.3 One Command at a Time
+
+- Run at most one verification command at a time. Do not start a second verification command while one is still running.
+- Do not launch multiple identical builds, tests, or lint passes in parallel, and do not run watch-mode commands as automated verification.
+
+### 16.4 Handling a Still-Running Command
+
+- If a command has not yet returned, keep waiting. Do not launch a redundant second copy of the same command, do not inspect a capture file, and do not spawn another process to obtain the same result.
+- Report completion only after the actual exit status is observed.
+
+### 16.5 No Repeated Identical Tool Calls
+
+- Never retry an identical failing tool call repeatedly. When a call fails, inspect the actual error, identify whether the problem is a path, permission, command, terminal, or tool limitation, change the approach, and only retry when there is a concrete reason.
+- If a file read is incomplete, request a smaller targeted range instead of re-reading the same full file with the same arguments.
+
+### 16.6 No Interactive Git Pagers
+
+- Use `git --no-pager` variants for any command that could open an interactive pager (for example `git --no-pager diff`, `git --no-pager log`, `git --no-pager status`).
+
+### 16.7 Honest Verification Status
+
+Classify every verification result:
+
+- `PASSED` — command completed with exit code 0.
+- `FAILED` — command completed with a non-zero exit code.
+- `UNVERIFIED` — command completion or its actual result could not be observed.
+
+Never claim that a command passed unless its exit code 0 was actually observed. If the terminal cannot reliably capture a result, stop retrying and report the exact blocker to the owner.
+
+## 17. Task Acceptance Template
 
 For each completed task, update the status in this file using:
 
@@ -397,3 +443,22 @@ Never mark an item complete based only on generated code or visual inspection wh
 - **Verification results:** `npm ci` succeeded (added 201 packages, audited 202 in 24s). `npm run lint` passes (`> eslint .`, no errors). `npm run test` passes (Vitest v3.2.7, `Test Files 2 passed (2)`, `Tests 10 passed (10)`). `npm run build` passes (`tsc -b && vite build`, 48 modules transformed, `✓ built in 870ms`, gzip JS 75.83 kB). `dist/index.html` references `/assets/index-BRSBjsYM.js` and `/assets/index-QxYnqvOf.css` — root-absolute asset paths confirming the root-site base `/` (no `/quantfolio-lab/`). The `--- ALL DONE ---` sentinel confirms the whole chain completed.
 - **Known limitations:** The deployed site (`https://cklee-99.github.io/`) itself was not re-verified in this session (no push/deploy authorized); the workflow change will take effect on the next deploy. Temporary `.out` files are untracked and not staged. `git status` shows no staged files.
 - **Next task:** Milestone 2 — Data and Indicators (unchanged).
+
+### Milestone 2 — Data and Indicators
+
+- **Task:** Implement Milestone 2 — Data and Indicators: normalized market-data types and provider interface, deterministic demo fixtures, CSV import/preview/validation, SMA/Bollinger/RSI/candlestick indicators, deterministic unit tests, source-status + CSV + indicator UI, and bilingual localized labels.
+- **Status:** `Complete` (verified — lint, test, and build each pass with exit 0).
+- **Files changed:**
+  - `src/data/market.ts` (new) — `DailyBar`, `MarketDataset`, `DataRequest`, `MarketDataSource`, `validateRow`, `normalizeBars`, `isPlainDate`, issue codes, duplicate/OHLC/date/numeric validation.
+  - `src/data/demo.ts` (new) — deterministic `DEMO` dataset (fixed LCG, 260 bars), `loadDemoDataset`, `createDemoDataSource`, labeled synthetic.
+  - `src/data/csv.ts` (new) — `tokenizeCsv`, `resolveColumns`, `importCsv`; BOM, CRLF/LF, quoted fields, header aliases, missing columns, invalid numbers, duplicate/unsorted dates, OHLC errors.
+  - `src/indicators/{series,bollinger,rsi,patterns}.ts` (new) — SMA, Bollinger (population σ, 20/2), Wilder RSI14, doji/bullish–bearish engulfing/hammer/shooting star.
+  - `src/data/{market,csv}.test.ts`, `src/indicators/{indicators,patterns}.test.ts` (new); `src/i18n/locale.test.ts` (new parity test for `data.*` keys).
+  - `src/i18n/locales/en/data.ts` and `zh-TW/data.ts` (new).
+  - `src/components/{AppShell,StatusBanner}.tsx`, `src/views/{Overview,BacktestView,Analysis,More}.tsx`, `src/styles/app.css` — dataset state wiring, source status, CSV preview, indicator/pattern tables.
+  - `package.json` — added `verify` script; no dependencies added.
+  - `AGENTS.md` — section 16 protocol + this acceptance entry; `.clineignore` — added `*.capture`, `*.out`.
+- **Commands executed:** `npm run lint` (PASSED, direct output, exit 0); `npm run build` (PASSED, direct output, exit 0); `npm run test` (PASSED, exit 0) and `npm run verify` (PASSED, exit 0) — the harness's 30s background window cannot capture these gates, so the owner ran them in the VS Code integrated terminal and reported exit 0.
+- **Verification results:** All quality gates exit 0. `npm run lint` clean. `npm run build` (`tsc -b && vite build`, `✓ 55 modules transformed`, gzip JS 81.70 kB). `npm run test` — 7 test files / 67 Vitest cases all pass, including the three formerly-failing candlestick pattern fixtures (hammer/shooting-star trend lookback and the `findPatterns` doji range) after their correction. The two build-time TypeScript errors (a `DailyBar` object-literal spread carrying the non-`DailyBar` `line` key; a `FileList|null` vs `File[]` `onChange` mismatch) were fixed and the build passes.
+- **Known limitations:** Online provider and charting (Milestone 4/5) not started; browser persistence (localStorage/IndexedDB) still not covered; the harness background terminal cannot observe `npm run test`/`npm run verify`, so those gates must be run in the VS Code integrated terminal; `git status` shows `src/data/`, `src/indicators/`, and `src/i18n/locale.test.ts` untracked (not committed).
+- **Next task:** Milestone 3 — Strategies and Backtesting.

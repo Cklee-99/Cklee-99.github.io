@@ -392,3 +392,61 @@
   gap: var(--space-3);
 }
 
+/* Milestone 2: market-data source card, CSV import, and indicator diagnostics. */
+.source-card {
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+.source-meta {
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+.demo-control,
+.csv-import {
+  margin-block: var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+}
+.file-field {
+  font-size: var(--font-size-sm);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  min-height: 40px;
+}
+.csv-preview {
+  margin-block: var(--space-3);
+  display: grid;
+  gap: var(--space-3);
+}
+.preview-table {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow-wrap: anywhere;
+}
+.preview-table th,
+.preview-table td {
+  padding: var(--space-1) var(--space-2);
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+.csv-issues {
+  display: grid;
+  gap: var(--space-1);
+}
+.pattern-list {
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+

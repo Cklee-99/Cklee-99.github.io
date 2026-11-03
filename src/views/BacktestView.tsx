@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import type { Locale } from '../state/prefs'
+import type { MarketDataset } from '../data/market'
 import { translate } from '../i18n/index'
 import {
   DEFAULT_ALLOCATION,
@@ -43,7 +44,7 @@ function numInput(value: string): number {
   return Number(value)
 }
 
-export function BacktestView({ locale }: { locale: Locale }) {
+export function BacktestView({ locale, dataset }: { locale: Locale; dataset: MarketDataset | null }) {
   const t = (key: string) => translate(locale, key)
   const [config, setConfig] = useState<BacktestConfig>(initialConfig())
   const [errors, setErrors] = useState<FieldErrors>({})
@@ -67,7 +68,7 @@ export function BacktestView({ locale }: { locale: Locale }) {
   return (
     <section className="panel">
       <h1 className="panel-heading">{t('backtest.title')}</h1>
-      <StatusBanner locale={locale} />
+      <StatusBanner locale={locale} dataset={dataset} />
       <form className="sim-form" onSubmit={handleSubmit}>
         <h2 className="form-section-title">{t('backtest.section.required')}</h2>
 
