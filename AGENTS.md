@@ -42,6 +42,7 @@ Do not attempt to implement every milestone in one uncontrolled batch. Do not er
 ## 3. Communication and Coding Rules
 
 - Communicate with the project owner in Traditional Chinese unless asked otherwise.
+- **Language policy (permanent):** All owner-facing communication must be Traditional Chinese. `src/i18n/locales/zh-TW/` must contain Traditional Chinese only — never Simplified Chinese; `src/i18n/locales/en/` must remain English. Every new visible UI label, error, status, strategy description, and simulation message must exist in both locales with consistent keys.
 - Write all source code, identifiers, and code comments in English.
 - Keep comments minimal and useful; prefer one-line English comments when needed.
 - Prefer clear names, small modules, strict typing, and simple designs over unnecessary abstractions.
@@ -248,11 +249,11 @@ Run relevant tests and a production build before deployment. Do not push, commit
 
 ### Milestone 3 — Strategies and Backtesting
 
-- [ ] Implement the five initial strategies.
-- [ ] Implement next-session execution and transaction accounting.
-- [ ] Implement fees, slippage, and fractional-share settings.
-- [ ] Implement benchmark and performance metrics.
-- [ ] Add deterministic integration tests.
+- [x] Implement the five initial strategies.
+- [x] Implement next-session execution and transaction accounting.
+- [x] Implement fees, slippage, and fractional-share settings.
+- [x] Implement benchmark and performance metrics.
+- [x] Add deterministic integration tests.
 
 ### Milestone 4 — Dashboard and Charts
 
@@ -273,12 +274,12 @@ Run relevant tests and a production build before deployment. Do not push, commit
 
 ## 13. Current Status
 
-- **Current milestone:** Milestone 2 — Data and Indicators is COMPLETE (all quality gates pass). `npm run lint` and `npm run build` PASS via direct terminal output; `npm run test` PASSES with exit 0 when run in the VS Code integrated terminal (the harness's 30s background window cannot capture `npm run test`/`npm run verify`, so the owner ran the gate manually there and reported exit 0).
-- **Project implementation status:** Milestone 1 (incl. code-review fixes) and Milestone 1.2 are complete. Milestone 2 adds `src/data/{market,demo,csv}.ts`, `src/indicators/{series,bollinger,rsi,patterns}.ts`, deterministic unit tests, and localized dataset/CSV/indicator UI in Overview/Analysis/Backtest/More. No new runtime dependencies were added. `package.json` now includes a `verify` script (`npm run lint && npm run test && npm run build`).
+- **Current milestone:** Milestones 2 and 2.1 remain complete. Milestone 3 — Strategies and Backtesting is `Implemented`: the deterministic strategy registry (five strategies), the backtesting engine, fees/slippage/fractional shares, benchmark + performance metrics, deterministic tests, and a Run-backtest results panel. `npm run lint` PASS (exit 0), `npm run build` PASS (exit 0, 71 modules, gzip JS 86.28 kB), and all 123 targeted Vitest cases PASS. Full `npm run verify` UNVERIFIED in the 30s harness window (protocol 16.4) — run it in the VS Code integrated terminal.
+- **Project implementation status:** Milestones 1, 1.2, 2, and 2.1 complete. Milestone 3 adds the five-strategy registry (`src/strategies/*`), the backtesting engine (`src/backtesting/*`), new `strategy.*`/`simulation.*` locale groups, and a Run-backtest + results panel in `BacktestView`. No new runtime dependencies or backend services were added.
 - **Current deployment:** `Cklee-99.github.io` → `https://cklee-99.github.io/`, a user site at the domain root. Vite production `base` is `/` (set explicitly in `vite.config.ts`). GitHub Actions publishes the `dist/` build artifact after lint/test/build success. No push/deploy was performed this session.
-- **Current verified tests:** All quality gates PASS with exit 0. `npm run lint` (clean, direct output). `npm run build` (`tsc -b && vite build`, `✓ 55 modules transformed`, gzip JS 81.70 kB, direct output). `npm run test` (7 test files / 67 Vitest cases, exit 0) — PASSED via the owner's manual `npm run verify` in the VS Code integrated terminal, including the three corrected candlestick pattern fixtures.
-- **Current blocker:** None. Lint, test, and build each complete with exit code 0 (test/build/lint verified; test verified by the owner's integrated-terminal run because the harness 30s window cannot observe it).
-- **Next task:** Milestone 3 — Strategies and Backtesting: five strategies, next-session execution and transaction accounting, fees/slippage/fractional shares, benchmark and performance metrics, and deterministic integration tests.
+- **Current verified tests:** All 123 Vitest cases across 11 test files pass in targeted runs: milestone-3 files (strategies 23, accounting 11, performance 8, simulator 8) + locale parity 3 (53 tests, exit 0), and the pre-existing indicators/patterns/market/csv/config files (70 tests, exit 0). `npm run lint` clean (exit 0, direct); `npm run build` passes (exit 0, `✓ 71 modules transformed`, gzip JS 86.28 kB). Full `npm run test`/`npm run verify` exceed the harness 30s window (protocol 16.4) — run them in the VS Code integrated terminal.
+- **Current blocker:** None. The harness's 30s window cannot capture the full `npm run test`/`npm run verify`, so that closing gate is UNVERIFIED here pending the owner's integrated-terminal run.
+- **Next task:** Milestone 4 — Dashboard and Charts (candlestick chart + overlays, RSI panel, equity/drawdown charts, execution markers, daily timeline) after the owner records a passing `npm run verify` for Milestone 3.
 - **Important:** Do not rerun Vite scaffolding, change Vite `base` to `/quantfolio-lab/`, or overwrite meaningful files without inspection. Do not use capture files for verification (see section 16). The harness background window cannot capture `npm run test`/`npm run verify`; run those gates in the VS Code integrated terminal.
 
 ## 14. Known Issues and Resolutions
@@ -323,6 +324,17 @@ Record issues using this format:
 
 Do not invent additional issues or claim verification that has not been observed.
 
+- **Issue:** Simulator queued HOLD decisions and executed them as SELL orders the next session.
+  - **Observed evidence:** The scheduled-deployment integration test failed — `result.ledger.filter((o) => o.action === 'SELL').length` returned 12 for a strategy that never emits SELL, because every HOLD decision turned into a sell next session.
+  - **Root cause:** `runSimulation` queued every decision (including HOLD); the executor treated any non-BUY action as a SELL, so ordinary hold days incorrectly closed the position.
+  - **Resolution:** Only BUY and SELL decisions queue an order; HOLD clears the queue (`if (i < simEnd && decision.action !== 'HOLD')`).
+  - **Verification:** scheduled-deployment integration test passes; all 8 simulator tests pass in the targeted run.
+- **Issue:** zh-TW locale contained three Simplified-Chinese strings that violate the Traditional-Chinese-only policy.
+  - **Observed evidence:** `data.csv.noValid` (`绝不会悄悄丢弃`), `data.diag.title` (`后续里程碑`), `data.diag.patternsTitle` (`蜡烛圖形態`).
+  - **Root cause:** Pre-existing Simplified variants inconsistent with the required Taiwan Traditional terminology.
+  - **Resolution:** Rewrote them as `絕不會悄悄丟棄`, `後續里程碑`, `蠟燭圖形態`; new milestone-3 zh-TW resources were written in Traditional Chinese from the start.
+  - **Verification:** Grep over zh-TW data/strategy/simulation files found no simplified `会`/`图`/`蜡`/`后` variants.
+
 ## 15. Decision Log
 
 - **D-001:** Use React, TypeScript, and Vite for a maintainable static SPA.
@@ -337,6 +349,12 @@ Do not invent additional issues or claim verification that has not been observed
 - **D-010:** The current deployment is the GitHub Pages user site repository `Cklee-99.github.io`, published at `https://cklee-99.github.io/`; Vite's production base is `/`, and GitHub Actions deploys the `dist/` artifact. `/quantfolio-lab/` is only relevant if a separate project-site repository is created later.
 - **D-011:** Localization uses a bundled `Record<string, string>` lookup (`translate(locale, key)` with English fallback) instead of runtime `i18next`; this keeps zero runtime dependencies and works offline on GitHub Pages. Custom attribute names (e.g. `<div data-theme="dark">`) drive CSS theme switching, so `strategy` label keys follow `Option.id` snake_case to avoid raw-key rendering.
 - **D-012:** Milestone 2 normalizes market data as typed `DailyBar`/`MarketDataset` behind a replaceable `MarketDataSource`. Deterministic demo data is clearly labeled synthetic. CSV import rejects invalid rows with visible issues; dates must be unique ISO `YYYY-MM-DD` and are sorted ascending; no interpolation or silent zero substitution. Indicators are aligned to input length and return `null` before a complete window; Bollinger Bands use population standard deviation (divide by N); Wilder RSI's first value appears at index `period`. Candlestick patterns never use future bars; hammer/shooting star require a documented prior trend. New `data.*` locale keys are covered by a parity test.
+- **D-013:** Real-body engulfing is the defined pattern contract. Bullish: previous candle bearish, current bullish, and `current.open <= prev.close && current.close >= prev.open`. Bearish: previous bullish, current bearish, and `current.open >= prev.close && current.close <= prev.open`. Comparisons are inclusive at equality; wicks outside the previous candle's full high/low range never disqualify a real-body engulf, and a candle whose full range covers the previous candle but whose real body does not is rejected. `isBullishEngulfing`/`isBearishEngulfing` names and interfaces are unchanged.
+- **D-014:** The `MarketDataSource` contract loads asynchronously (`load(request): Promise<MarketDataLoadResult>`) because a browser-side provider must `fetch()`. `createDemoDataSource()` satisfies it with `Promise.resolve(...)`. Pure synchronous utilities (`loadDemoDataset()`, `createDemoBars()`, CSV parsing/validation, indicators) stay synchronous. Consumers that call `.load()` await it.
+- **D-015:** A strategy may only emit BUY/SELL/HOLD; strategy functions never place orders or touch accounting. Sizing strategies (scheduled deployment) signal an optional `buyBudget` (gross spend cap) through the decision record; the simulator additionally caps every buy by available cash, allocation capacity, and fee headroom.
+- **D-016:** Only BUY and SELL decisions create a queued order; HOLD clears the queue. Execution happens at the next eligible session's open from a decision taken at the previous session's close, and capacity is valued at that previous close — preventing look-ahead.
+- **D-017:** Scheduled deployment defaults to 12 equal monthly tranches from the configured initial capital (no external deposits and never a SELL). A tranche's budget is `min(initialCapital/12, cash/(1+feeRate), equity*allocationRatio - positionValue)`; zero-budget tranches report `monthlyTrancheSkipped` instead of silently trading. `trancheCount` is a supported strategy constant (12) pending future config exposure.
+- **D-018:** zh-TW locale files must contain Traditional Chinese only. Owner-facing communication is Traditional Chinese; `en` resources remain English. Reason codes and UI labels always live in bundled translation keys, never hardcoded.
 
 ## 16. Terminal Execution and Verification Protocol
 
@@ -460,5 +478,37 @@ Never mark an item complete based only on generated code or visual inspection wh
   - `AGENTS.md` — section 16 protocol + this acceptance entry; `.clineignore` — added `*.capture`, `*.out`.
 - **Commands executed:** `npm run lint` (PASSED, direct output, exit 0); `npm run build` (PASSED, direct output, exit 0); `npm run test` (PASSED, exit 0) and `npm run verify` (PASSED, exit 0) — the harness's 30s background window cannot capture these gates, so the owner ran them in the VS Code integrated terminal and reported exit 0.
 - **Verification results:** All quality gates exit 0. `npm run lint` clean. `npm run build` (`tsc -b && vite build`, `✓ 55 modules transformed`, gzip JS 81.70 kB). `npm run test` — 7 test files / 67 Vitest cases all pass, including the three formerly-failing candlestick pattern fixtures (hammer/shooting-star trend lookback and the `findPatterns` doji range) after their correction. The two build-time TypeScript errors (a `DailyBar` object-literal spread carrying the non-`DailyBar` `line` key; a `FileList|null` vs `File[]` `onChange` mismatch) were fixed and the build passes.
+
+### Milestone 2.1 — Corrective Follow-up: Real-Body Engulfing and Asynchronous DataSource
+
+- **Task:** Focused correction before Milestone 3. (1) Reimplement bullish/bearish engulfing recognition to use real-body coverage instead of the full high/low candle range. (2) Make the `MarketDataSource` load contract asynchronous (`Promise<MarketDataLoadResult>`). Do not reimplement Milestone 2, start Milestone 3, commit, push, or deploy.
+- **Status:** `Implemented` — changed tests pass (29 targeted), `npm run lint` and `npm run build` pass with direct exit 0. Full `npm run verify` UNVERIFIED in the 30s harness window (protocol 16.4); run it in the VS Code integrated terminal to record the closing exit 0.
+- **Files changed:**
+  - `src/indicators/patterns.ts` — `isBullishEngulfing` now uses `current.open <= prev.close && current.close >= prev.open` (previous candle bearish, current bullish); `isBearishEngulfing` uses `current.open >= prev.close && current.close <= prev.open` (previous bullish, current bearish). Inclusive equality; real-body coverage is authoritative and wicks never qualify or disqualify by themselves. Names/signatures unchanged; no future-bar access.
+  - `src/data/market.ts` — `MarketDataSource.load(request)` return type changed from `MarketDataLoadResult` to `Promise<MarketDataLoadResult>` so a browser-side `fetch()` provider can implement the interface. `MarketDataset`/`MarketDataLoadResult` structures and validation behavior unchanged.
+  - `src/data/demo.ts` — `createDemoDataSource().load` now returns `Promise.resolve({...})`. Pure synchronous `loadDemoDataset()` and `createDemoBars()` preserved.
+  - `src/indicators/patterns.test.ts` — added 5 real-body engulfing tests: real-body cover with wicks short of the previous full range (bullish and bearish), full-range cover but real-body non-cover rejected, reversed-direction rejection, and inclusive boundary equality.
+  - `src/data/market.test.ts` — added `VALID_ADJUSTMENT_POLICY_NONE` import; the existing sync `load()` test became an awaited `async` test, plus a new dataset-metadata assertions test (sourceType, symbol, providerId undefined, requestedRange, dateRange, validCount, adjustmentPolicy).
+  - `AGENTS.md` — section 13 status, D-013/D-014 decision entries, and this corrective-follow-up entry (section 17 acceptance history preserved).
+- **Commands executed:** `npx vitest run src/indicators/patterns.test.ts src/data/market.test.ts` (PASSED, exit 0 — patterns 14, market 15, 29 tests); `npm run lint` (PASSED, direct, exit 0); `npm run build` (PASSED, direct, exit 0, `✓ 55 modules transformed`, gzip JS 81.70 kB); `npm run verify` (UNVERIFIED — harness 30s timeout before completion; per protocol 16.4 run it in the VS Code integrated terminal).
+- **Verification results:** All newly added/updated fixtures pass in the targeted run. Combined test count is now 73 Vitest cases across 7 test files (Milestone 2's 67 plus 6 added: 5 real-body engulfing + 2 async-datasource, with the former synchronous load test converted in place). `npm run lint` clean; `npm run build` passes. Closing `npm run verify` exit 0 pending the owner's integrated-terminal run.
+- **Known limitations:** The full `npm run verify` could not be captured in the 30s harness window; only the targeted test run plus lint/build were observed with exit 0 here. No push/commit/deploy was performed. Online provider still not introduced; CSV parsing/validation and indicator utilities remain synchronous. Browser persistence (localStorage/IndexedDB) still not covered.
+- **Next task:** Milestone 3 — Strategies and Backtesting (unchanged).
 - **Known limitations:** Online provider and charting (Milestone 4/5) not started; browser persistence (localStorage/IndexedDB) still not covered; the harness background terminal cannot observe `npm run test`/`npm run verify`, so those gates must be run in the VS Code integrated terminal; `git status` shows `src/data/`, `src/indicators/`, and `src/i18n/locale.test.ts` untracked (not committed).
 - **Next task:** Milestone 3 — Strategies and Backtesting.
+
+### Milestone 3 — Strategies and Backtesting
+
+- **Task:** Implement Milestone 3 — Strategies and Backtesting: a deterministic strategy registry (five strategies), a pure backtesting engine with next-session execution and accounting, fees/slippage/fractional-share settings, benchmark and performance metrics, deterministic tests, and basic Backtest UI (Run backtest + results panel). Do not commit, push, deploy, or start Milestone 4.
+- **Status:** `Implemented` — targeted tests (53 new + 70 pre-existing) PASS, `npm run lint` PASS (exit 0), `npm run build` PASS (exit 0, 71 modules, gzip JS 86.28 kB). Full `npm run verify` UNVERIFIED in the 30s harness window (protocol 16.4); run it in the VS Code integrated terminal.
+- **Files changed:**
+  - `src/strategies/{types,registry,trend-following,mean-reversion,scheduled-deployment,candlestick-confirmation,momentum-breakout}.ts` (new) — typed StrategyContext/Decision, five deterministic strategies, registry by stable id.
+  - `src/backtesting/{types,accounting,execution,benchmark,performance,simulator}.ts` (new) — portfolio state & corporate actions, order sizing/execution, buy-and-hold benchmark, performance metrics, deterministic simulator.
+  - `src/strategies/strategies.test.ts`, `src/backtesting/{accounting,performance,simulator}.test.ts` (new — 50 deterministic cases).
+  - `src/i18n/locales/{en,zh-TW}/strategy.ts` and `{en,zh-TW}/simulation.ts` (new), wired into both `resources.ts`; zh-TW written in Traditional Chinese only; `zh-TW/data.ts` Simplified strings corrected; `locale.test.ts` parity extended to `strategy.*`/`simulation.*`.
+  - `src/views/BacktestView.tsx` — Run-backtest button, validation gate, and localized results panel; `src/styles/app.css` — `.sim-result`/`.metric-list`/`.warning-list` styles.
+  - `AGENTS.md` — language policy (section 3), Milestone 3 roadmap status, Current Status, Known Issues, D-015–D-018, and this acceptance entry.
+- **Commands executed:** `npx vitest run` over the 4 new engine/strategy test files + locale (PASSED, exit 0 — 53 tests); `npx vitest run` over the 6 pre-existing engine/data/config files (PASSED, exit 0 — 70 tests); `npx eslint .` (PASSED, exit 0); `npm run build` (PASSED, exit 0, `✓ 71 modules transformed`, gzip JS 86.28 kB). Full `npm run test`/`npm run verify` are not observable in the 30s harness window (protocol 16.4 — UNVERIFIED here).
+- **Verification results:** All 123 Vitest cases across 11 test files pass in targeted runs. `npm run lint` clean. `npm run build` passes. The HOLD-as-SELL simulator bug and the zh-TW Simplified strings are fixed. Closing `npm run verify` exit 0 pending the owner's integrated-terminal run.
+- **Known limitations:** No full-chart UI (Milestone 4); online provider still not introduced; browser persistence (localStorage/IndexedDB) not covered; `trancheCount` is a fixed default of 12 (not yet an exposed config field); full `npm run verify` gated by the 30s harness window.
+- **Next task:** Milestone 4 — Dashboard and Charts.

@@ -450,3 +450,40 @@
   color: var(--color-text);
 }
 
+/* Backtest simulation results panel. */
+.sim-result {
+  display: grid;
+  gap: var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+.metric-list {
+  display: grid;
+  gap: var(--space-2);
+  margin-block: var(--space-2);
+}
+.metric-list li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+.metric-label {
+  color: var(--color-text-muted);
+}
+.warning-list {
+  display: grid;
+  gap: var(--space-1);
+  margin-block: var(--space-2);
+}
+.warning-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-warning);
+  line-height: var(--line-height-body);
+}
+
+

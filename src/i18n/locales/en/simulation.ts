@@ -1,0 +1,27 @@
+/* en backtest simulation result labels. Keys are grouped under the `simulation` prefix. */
+
+export const simulation: Record<string, string> = {
+  'simulation.title': 'Backtest results',
+  'simulation.scope': 'Simulated range',
+  'simulation.run': 'Run backtest',
+  'simulation.status.ready': 'Configuration is valid. Run the backtest when a dataset is loaded.',
+  'simulation.status.noDataset': 'Load or import a market dataset before running a backtest.',
+  'simulation.metric.initialCapital': 'Initial capital',
+  'simulation.metric.finalEquity': 'Final equity',
+  'simulation.metric.totalReturn': 'Total return',
+  'simulation.metric.cagr': 'CAGR (annualized)',
+  'simulation.metric.maxDrawdown': 'Max drawdown',
+  'simulation.metric.volatility': 'Annualized volatility',
+  'simulation.metric.sharpe': 'Sharpe ratio',
+  'simulation.metric.trades': 'Executed orders',
+  'simulation.metric.winRate': 'Closed-trade win rate',
+  'simulation.metric.exposure': 'Average exposure',
+  'simulation.metric.benchmark': 'Buy-and-hold return',
+  'simulation.metric.excess': 'Excess vs benchmark',
+  'simulation.value.unavailable': 'Not available',
+  'simulation.warning.noClosedTrades': 'No trades closed, so the win rate is not applicable.',
+  'simulation.warning.skippedOrders': 'One or more orders could not execute. They are reported, never silently dropped.',
+  'simulation.warning.insufficientIndicatorHistory': 'Early sessions lacked indicator history and stayed on hold.',
+  'simulation.warning.insufficientSimRange': 'No sessions matched the configured date range.',
+  'simulation.limitNote': 'Educational simulation. Uses current-session-close signals with next-session-open execution; historical results do not guarantee future performance.',
+}

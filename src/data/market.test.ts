@@ -3,6 +3,7 @@ import {
   isPlainDate,
   normalizeBars,
   validateRow,
+  VALID_ADJUSTMENT_POLICY_NONE,
   type RawBar,
 } from './market'
 import { loadDemoDataset, createDemoDataSource, DEMO_SYMBOL, createDemoBars } from './demo'
@@ -112,10 +113,23 @@ describe('deterministic demonstration data', () => {
     }
   })
 
-  it('implements the replaceable data-source interface', () => {
+  it('fulfills the asynchronous provider contract', async () => {
     const source = createDemoDataSource()
-    const result = source.load({ symbol: DEMO_SYMBOL, startDate: '2024-01-02', endDate: '2024-12-31' })
+    const result = await source.load({ symbol: DEMO_SYMBOL, startDate: '2024-01-02', endDate: '2024-12-31' })
     expect(result.dataset?.sourceType).toBe('demo')
     expect(result.issues.length).toBe(0)
+  })
+
+  it('returns the demo dataset metadata from the asynchronous source', async () => {
+    const bars = createDemoBars()
+    const source = createDemoDataSource()
+    const result = await source.load({ symbol: DEMO_SYMBOL, startDate: '2024-01-02', endDate: '2024-12-31' })
+    expect(result.dataset?.symbol).toBe(DEMO_SYMBOL)
+    expect(result.dataset?.providerId).toBeUndefined()
+    expect(result.dataset?.requestedRange).toEqual({ start: '2024-01-02', end: '2024-12-31' })
+    expect(result.dataset?.dateRange).toEqual({ start: bars[0].date, end: bars[bars.length - 1].date })
+    expect(result.dataset?.validCount).toBe(bars.length)
+    expect(result.dataset?.bars.length).toBe(bars.length)
+    expect(result.dataset?.adjustmentPolicy).toBe(VALID_ADJUSTMENT_POLICY_NONE)
   })
 })

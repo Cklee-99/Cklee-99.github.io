@@ -2,6 +2,8 @@ import { useState, type FormEvent } from 'react'
 import type { Locale } from '../state/prefs'
 import type { MarketDataset } from '../data/market'
 import { translate } from '../i18n/index'
+import { runSimulation } from '../backtesting/simulator'
+import type { SimulationResult } from '../backtesting/types'
 import {
   DEFAULT_ALLOCATION,
   DEFAULT_BENCHMARK,
@@ -50,6 +52,23 @@ export function BacktestView({ locale, dataset }: { locale: Locale; dataset: Mar
   const [errors, setErrors] = useState<FieldErrors>({})
   const [status, setStatus] = useState<'idle' | 'valid' | 'invalid'>('idle')
   const [advancedOpen, setAdvancedOpen] = useState(false)
+  const [result, setResult] = useState<SimulationResult | null>(null)
+
+  const runBacktest = () => {
+    const validation = validateBacktestConfig(config)
+    setErrors(validation.errors)
+    setStatus(validation.valid && dataset ? 'valid' : 'invalid')
+    if (!validation.valid) return
+    if (!dataset) return
+    setResult(runSimulation(dataset, config))
+  }
+
+  const asPercent = (value: number | null) =>
+    value === null ? t('simulation.value.unavailable') : `${(value * 100).toFixed(2)}%`
+  const asRatio = (value: number | null) =>
+    value === null ? t('simulation.value.unavailable') : value.toFixed(2)
+  const asCurrency = (value: number) => value.toLocaleString('en-US')
+  const asInt = (value: number) => value.toLocaleString('en-US')
 
   const errText = (field: string) => {
     const code = errors[field]
@@ -270,8 +289,41 @@ export function BacktestView({ locale, dataset }: { locale: Locale; dataset: Mar
 
         <div className="action-row">
           <button type="submit" className="action-button">{t('backtest.action.saveLabel')}</button>
-          <span className="unavailable-label">{t('backtest.engine.unavailable')}</span>
+          <button type="button" className="action-button" onClick={runBacktest}>{t('simulation.run')}</button>
         </div>
+        <p className="field-note">
+          {dataset ? t('simulation.status.ready') : t('simulation.status.noDataset')}
+        </p>
+        {result && (
+          <section className="sim-result">
+            <h2 className="panel-heading">{t('simulation.title')}</h2>
+            {result.startDate ? (
+              <p className="field-note">{t('simulation.scope')}: {result.startDate} – {result.endDate}</p>
+            ) : null}
+            <ul className="metric-list">
+              <li><span className="metric-label">{t('simulation.metric.initialCapital')}</span><span>{asCurrency(result.summary.initialCapital)}</span></li>
+              <li><span className="metric-label">{t('simulation.metric.finalEquity')}</span><span>{asCurrency(result.summary.finalEquity)}</span></li>
+              <li><span className="metric-label">{t('simulation.metric.totalReturn')}</span><span>{asPercent(result.summary.totalReturn)}</span></li>
+              <li><span className="metric-label">{t('simulation.metric.cagr')}</span><span>{asPercent(result.summary.cagr)}</span></li>
+              <li><span className="metric-label">{t('simulation.metric.maxDrawdown')}</span><span>{asPercent(result.summary.maxDrawdown)}</span></li>
+              <li><span className="metric-label">{t('simulation.metric.volatility')}</span><span>{asPercent(result.summary.annualizedVolatility)}</span></li>
+              <li><span className="metric-label">{t('simulation.metric.sharpe')}</span><span>{asRatio(result.summary.sharpeRatio)}</span></li>
+              <li><span className="metric-label">{t('simulation.metric.trades')}</span><span>{asInt(result.summary.tradeCount)}</span></li>
+              <li><span className="metric-label">{t('simulation.metric.winRate')}</span><span>{asPercent(result.summary.closedWinRate)}</span></li>
+              <li><span className="metric-label">{t('simulation.metric.exposure')}</span><span>{asPercent(result.summary.exposure)}</span></li>
+              <li><span className="metric-label">{t('simulation.metric.benchmark')}</span><span>{asPercent(result.summary.benchmarkReturn)}</span></li>
+              <li><span className="metric-label">{t('simulation.metric.excess')}</span><span>{asPercent(result.summary.excessReturn)}</span></li>
+            </ul>
+            {result.warnings.length > 0 && (
+              <ul className="warning-list">
+                {result.warnings.map((warning) => (
+                  <li className="warning-label">{t(`simulation.warning.${warning}`)}</li>
+                ))}
+              </ul>
+            )}
+            <p className="field-note">{t('simulation.limitNote')}</p>
+          </section>
+        )}
       </form>
     </section>
   )

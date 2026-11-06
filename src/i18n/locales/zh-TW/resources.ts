@@ -6,6 +6,8 @@ import { backtest } from './backtest'
 import { analysis } from './analysis'
 import { data } from './data'
 import { settings } from './settings'
+import { strategy } from './strategy'
+import { simulation } from './simulation'
 
 export const zhTW: Record<string, string> = {
   ...common,
@@ -14,4 +16,6 @@ export const zhTW: Record<string, string> = {
   ...analysis,
   ...data,
   ...settings,
+  ...strategy,
+  ...simulation,
 }

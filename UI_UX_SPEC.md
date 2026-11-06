@@ -15,6 +15,7 @@
 - **Current Vite production base:** `/` (or Vite's default root base); do not use `/quantfolio-lab/` for the current deployment.
 - **Future project-site example:** If the app is later moved to a separate `quantfolio-lab` repository, the usual project URL will be `https://cklee-99.github.io/quantfolio-lab/` and the base-path requirements must be reviewed then.
 - **Default locale:** Traditional Chinese (`zh-TW`). Secondary locale: English (`en`).
+- **Locale purity (permanent):** `zh-TW` resource files must contain Traditional Chinese only — never Simplified forms (for example 後, 圖, 蠟, 會 rather than 后, 图, 蜡, 会) — and `en` must remain English. All visible UI copy, errors, statuses, strategy descriptions, and simulation messages must ship in both locales with identical keys.
 
 ### Design principles
 
@@ -296,7 +297,7 @@ Include:
 
 ## 7. Localization and Formatting
 
-Use the bundled local `translate(locale, key)` lookup with `zh-TW` and `en` tables. The default locale is `zh-TW`; English is `en`. Do not introduce `i18next`/`react-i18next`; translation resources are bundled and resolved offline.
+Use the bundled local `translate(locale, key)` lookup with `zh-TW` and `en` tables. The default locale is `zh-TW`; English is `en`. Do not introduce `i18next`/`react-i18next`; translation resources are bundled and resolved offline. The `zh-TW` table must be Traditional Chinese only; the `en` table English only. Never hardcode user-facing strategy names, decision reasons, or simulation metrics inside engine or view code — always resolve them through `translate(locale, key)`.
 
 Suggested structure:
 

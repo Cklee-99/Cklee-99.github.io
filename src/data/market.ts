@@ -69,12 +69,13 @@ export interface MarketDataLoadResult {
   issues: DataSourceIssue[]
 }
 
-/** Replaceable data-source contract. A future online provider can implement this
-    interface without changing domain types or the indicator/backtest engines. */
+/** Replaceable data-source contract. Implementations may perform browser-side I/O
+    (e.g. a future online provider), so loading is asynchronous. A provider can
+    implement this interface without changing domain types or the engines. */
 export interface MarketDataSource {
   readonly sourceType: DataSourceType
   readonly providerId: string | undefined
-  load(request: DataRequest): MarketDataLoadResult
+  load(request: DataRequest): Promise<MarketDataLoadResult>
 }
 
 export const VALID_ADJUSTMENT_POLICY_NONE = 'unadjusted'

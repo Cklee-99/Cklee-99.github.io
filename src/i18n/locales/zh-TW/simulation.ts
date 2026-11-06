@@ -1,0 +1,27 @@
+/* zh-TW backtest simulation result labels. Keys are grouped under the `simulation` prefix. */
+
+export const simulation: Record<string, string> = {
+  'simulation.title': '回測結果',
+  'simulation.scope': '回測期間',
+  'simulation.run': '執行回測',
+  'simulation.status.ready': '設定有效。請先載入資料集即可執行回測。',
+  'simulation.status.noDataset': '請先載入或匯入市場資料集，才能執行回測。',
+  'simulation.metric.initialCapital': '初始資金',
+  'simulation.metric.finalEquity': '期末總資產',
+  'simulation.metric.totalReturn': '總報酬',
+  'simulation.metric.cagr': '年化 CAGR',
+  'simulation.metric.maxDrawdown': '最大回撤',
+  'simulation.metric.volatility': '年化波動率',
+  'simulation.metric.sharpe': '夏普比率',
+  'simulation.metric.trades': '已執行交易數',
+  'simulation.metric.winRate': '已完成交易勝率',
+  'simulation.metric.exposure': '平均曝險比例',
+  'simulation.metric.benchmark': '買入持有報酬率',
+  'simulation.metric.excess': '與基準之差',
+  'simulation.value.unavailable': '無法計算',
+  'simulation.warning.noClosedTrades': '沒有已完成的交易，因此勝率不適用。',
+  'simulation.warning.skippedOrders': '有部分訂單無法執行；這些訂單會標示出來，不會被忽略。',
+  'simulation.warning.insufficientIndicatorHistory': '前期交易時段缺乏指標歷史，因此保持持有。',
+  'simulation.warning.insufficientSimRange': '無任何交易日落在設定日期範圍內。',
+  'simulation.limitNote': '演算模型屬教育用途。訊號於當日收盤產生，於次日開盤執行；歷史績效不代表未來結果。',
+}

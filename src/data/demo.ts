@@ -84,15 +84,15 @@ export function createDemoDataSource(): MarketDataSource {
   return {
     sourceType: 'demo',
     providerId: undefined,
-    load: (request: DataRequest): MarketDataLoadResult => {
+    load: (request: DataRequest): Promise<MarketDataLoadResult> => {
       const base = loadDemoDataset()
-      return {
+      return Promise.resolve({
         dataset: {
           ...base,
           requestedRange: { start: request.startDate, end: request.endDate },
         },
         issues: [],
-      }
+      })
     },
   }
 }

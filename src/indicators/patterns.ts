@@ -40,13 +40,15 @@ export function isDoji(bar: DailyBar): boolean {
 export function isBullishEngulfing(prev: DailyBar, current: DailyBar): boolean {
   if (prev.close >= prev.open) return false // previous candle must be bearish
   if (current.close <= current.open) return false // current candle must be bullish
-  return current.high >= prev.high && current.low <= prev.low
+  // Current real body (open..close) fully covers the previous real body.
+  return current.open <= prev.close && current.close >= prev.open
 }
 
 export function isBearishEngulfing(prev: DailyBar, current: DailyBar): boolean {
   if (prev.close <= prev.open) return false // previous candle must be bullish
   if (current.close >= current.open) return false // current candle must be bearish
-  return current.high >= prev.high && current.low <= prev.low
+  // Current real body (close..open) fully covers the previous real body.
+  return current.open >= prev.close && current.close <= prev.open
 }
 
 function precedingTrend(bars: readonly DailyBar[], index: number, direction: 'up' | 'down'): boolean {
