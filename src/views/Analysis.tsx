@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import type { Locale } from '../state/prefs'
 import type { Theme } from '../state/prefs'
-import type { MarketDataset } from '../data/market'
+import { isPlainDate, type DataSourceIssue, type MarketDataset } from '../data/market'
 import { importCsv, type CsvImportResult } from '../data/csv'
+import { createYahooFinanceProvider } from '../data/providers/yahoo-finance'
 import { loadDemoDataset } from '../data/demo'
 import { sma } from '../indicators/series'
 import { bollingerBands } from '../indicators/bollinger'
 import { rsi } from '../indicators/rsi'
-import { DEFAULT_TICKER } from '../config/backtest'
+import { DEFAULT_TICKER, defaultStartDate, defaultEndDate } from '../config/backtest'
 import type { SimulationResult } from '../backtesting/types'
 import { StatusBanner } from '../components/StatusBanner'
 import { translate } from '../i18n/index'
@@ -83,6 +84,39 @@ export function Analysis({
     setFileName('')
   }
 
+  const yahooProvider = createYahooFinanceProvider()
+  const [providerTicker, setProviderTicker] = useState<string>(DEFAULT_TICKER)
+  const [providerStart, setProviderStart] = useState<string>(defaultStartDate())
+  const [providerEnd, setProviderEnd] = useState<string>(defaultEndDate())
+  const [providerLoading, setProviderLoading] = useState<boolean>(false)
+  const [providerIssues, setProviderIssues] = useState<DataSourceIssue[]>([])
+  const [providerOk, setProviderOk] = useState<boolean>(false)
+  const [providerError, setProviderError] = useState<string | null>(null)
+
+  const fetchProvider = async () => {
+    const ticker = providerTicker.trim().toUpperCase()
+    if (ticker.length === 0 || ticker.length > 10 || !/^[A-Z0-9.-]+$/.test(ticker)) {
+      setProviderError('data.provider.badTicker')
+      return
+    }
+    if (!isPlainDate(providerStart) || !isPlainDate(providerEnd) || providerStart > providerEnd) {
+      setProviderError('data.provider.badDates')
+      return
+    }
+    setProviderError(null)
+    setProviderLoading(true)
+    const request = { symbol: ticker, startDate: providerStart, endDate: providerEnd }
+    const result = await yahooProvider.load(request)
+    setProviderIssues(result.issues)
+    if (result.dataset) {
+      onDataset(result.dataset)
+      setProviderOk(true)
+    } else {
+      setProviderOk(false)
+    }
+    setProviderLoading(false)
+  }
+
   const palette = CHART_PALETTES[theme]
   const closes = dataset ? dataset.bars.map((b) => b.close) : []
   const ma5 = sma(closes, 5)
@@ -131,6 +165,37 @@ export function Analysis({
     <section className="panel">
       <h1 className="panel-heading">{t('analysis.title')}</h1>
       <StatusBanner locale={locale} dataset={dataset ?? null} />
+
+      <section className="provider-fetch">
+        <h2 className="form-section-title">{t('data.provider.title')}</h2>
+        <p className="field-note">{t('data.provider.name')} · {t('data.provider.note')}</p>
+        <div className="field">
+          <label htmlFor="provider-symbol">{t('data.provider.symbol')}</label>
+          <input id="provider-symbol" type="text" value={providerTicker} onChange={(event) => setProviderTicker(event.target.value)} aria-label={t('data.provider.symbol')} />
+        </div>
+        <div className="field">
+          <label htmlFor="provider-start">{t('data.provider.start')}</label>
+          <input id="provider-start" type="date" value={providerStart} onChange={(event) => setProviderStart(event.target.value)} aria-label={t('data.provider.start')} />
+        </div>
+        <div className="field">
+          <label htmlFor="provider-end">{t('data.provider.end')}</label>
+          <input id="provider-end" type="date" value={providerEnd} onChange={(event) => setProviderEnd(event.target.value)} aria-label={t('data.provider.end')} />
+        </div>
+        {providerError ? <p className="field-error">{t(providerError)}</p> : null}
+        <div className="action-row">
+          <button type="button" className="action-button" onClick={fetchProvider}>
+            {providerLoading ? t('data.provider.loading') : t('data.provider.fetch')}
+          </button>
+        </div>
+        {providerOk ? <p className="status-value">{t('data.provider.cached')}</p> : null}
+        {providerIssues.length > 0 ? (
+          <ul className="warning-list">
+            {providerIssues.map((issue) => (
+              <li className="warning-label">{t(`data.issue.${issue.code}`)}{issue.date ? ` (${issue.date})` : ''}</li>
+            ))}
+          </ul>
+        ) : null}
+      </section>
 
       {dataset ? (
         <div className="source-card">
