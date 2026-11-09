@@ -2,6 +2,7 @@
 
 import type { BacktestConfig } from '../config/backtest'
 import type { StrategyAction } from '../strategies/types'
+import type { BenchmarkAccountResult } from './benchmark'
 
 export interface DecisionRecord {
   date: string
@@ -62,6 +63,7 @@ export interface SimulationResult {
   skippedOrders: SkippedOrder[]
   snapshots: DailySnapshot[]
   summary: PortfolioSummary
+  benchmark: BenchmarkAccountResult
   warnings: string[]
   startDate: string | null
   endDate: string | null

@@ -14,5 +14,9 @@ export const dashboard: Record<string, string> = {
   'dashboard.metric.equity': '最終資產',
   'dashboard.metric.totalReturn': '總報酬',
   'dashboard.metric.none': '尚未可用',
+  'dashboard.section.headline': '重點指標',
   'dashboard.section.overview': '最新回測摘要',
+  'dashboard.section.equity': '投資組合資產',
+  'dashboard.section.trades': '近期交易',
+  'dashboard.recent.none': '此回測沒有任何已執行交易。',
 }

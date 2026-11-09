@@ -52,7 +52,7 @@ export const data: Record<string, string> = {
   'data.pattern.bearishEngulfing': '熊市吞沒',
   'data.pattern.hammer': '錘子（Hammer）',
   'data.pattern.shootingStar': '流星（Shooting Star）',
-  'data.diag.title': '技術指標診斷（圖表在後續里程碑登場）',
+  'data.diag.title': '技術指標診斷',
   'data.diag.close': '收價',
   'data.diag.date': '日期',
   'data.diag.sma5': 'SMA5',

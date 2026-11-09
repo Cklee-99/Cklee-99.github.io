@@ -23,5 +23,8 @@ export const simulation: Record<string, string> = {
   'simulation.warning.skippedOrders': 'One or more orders could not execute. They are reported, never silently dropped.',
   'simulation.warning.insufficientIndicatorHistory': 'Early sessions lacked indicator history and stayed on hold.',
   'simulation.warning.insufficientSimRange': 'No sessions matched the configured date range.',
+  'simulation.warning.benchmarkNoRange': 'The buy-and-hold benchmark could not run because no sessions matched the configured date range.',
+  'simulation.warning.benchmarkAdjustmentUnsupported': 'The buy-and-hold benchmark is unavailable: the data adjustment policy is not compatible with separate dividend/split processing, so corporate actions are not double-counted.',
+  'simulation.warning.benchmarkNoPurchase': 'The buy-and-hold benchmark could not buy any share with the configured whole-share policy and execution costs.',
   'simulation.limitNote': 'Educational simulation. Uses current-session-close signals with next-session-open execution; historical results do not guarantee future performance.',
 }

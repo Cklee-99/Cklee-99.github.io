@@ -487,3 +487,96 @@
 }
 
 
+
+
+/* Milestone 4: charts, legend, tooltip, timeline. */
+.chart-dashboard,
+.timeline-section {
+  display: grid;
+  gap: var(--space-4);
+  margin-block: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+.chart-frame {
+  position: relative;
+  min-height: 320px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.chart-legend {
+  display: flex;
+  gap: var(--space-2);
+  margin-block: var(--space-2);
+}
+.chart-legend .option-button {
+  font-size: var(--font-size-sm);
+  min-height: 40px;
+}
+.chart-tooltip {
+  display: grid;
+  gap: var(--space-1);
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text);
+}
+.chart-tooltip-title {
+  font-weight: 600;
+  color: var(--color-text);
+}
+.chart-tooltip-list {
+  display: grid;
+  gap: var(--space-1);
+}
+.chart-tooltip-list li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-2);
+  font-variant-numeric: tabular-nums;
+}
+.chart-tooltip-label {
+  color: var(--color-text-muted);
+}
+.chart-tooltip-value {
+  color: var(--color-text);
+}
+.timeline-list {
+  display: grid;
+  gap: var(--space-2);
+  margin-block: var(--space-2);
+}
+.timeline-row {
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+}
+.timeline-date {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.timeline-decision {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+.timeline-status {
+  color: var(--color-text-muted);
+}
+.timeline-reason {
+  color: var(--color-text-muted);
+}
+.timeline-exec,
+.timeline-snapshot {
+  display: block;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}

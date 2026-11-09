@@ -1,10 +1,23 @@
 /* Deterministic performance metrics from daily snapshots and the order ledger.
-   Metrics that cannot be computed meaningfully are null, never a fabricated zero. */
+   Metrics that cannot be computed meaningfully are null, never a fabricated zero.
+   Documented conventions:
+   - CAGR is annualized from the ACTUAL calendar days between the first and final
+     snapshots (365.25 days/year), not from a fixed session count.
+   - Volatility and Sharpe annualize per-trading-session returns with a fixed
+     SESSIONS_PER_YEAR = 252, because the return observations are trading days.
+   - Sharpe uses a zero risk-free rate (there is no separate cash benchmark), so
+     the mean session excess return is the mean session return directly. */
 
 import type { DailySnapshot, ExecutedOrder, PortfolioSummary } from './types'
 import type { BacktestConfig } from '../config/backtest'
 
 const SESSIONS_PER_YEAR = 252
+const DAYS_PER_YEAR = 365.25
+
+function isoDayNumber(iso: string): number {
+  const [y, m, d] = iso.split('-').map((part) => parseInt(part, 10))
+  return Math.round(new Date(y, m - 1, d).getTime() / 86_400_000)
+}
 
 function mean(values: readonly number[]): number {
   if (values.length === 0) return 0
@@ -62,8 +75,14 @@ export function computeSummary(
   const initial = config.initialCapital
   const last = snapshots.length > 0 ? snapshots[snapshots.length - 1].equity : initial
   const totalReturn = initial > 0 ? last / initial - 1 : null
-  const n = snapshots.length
-  const cagr = totalReturn !== null && totalReturn > -1 && n > 0 ? Math.pow(last / initial, SESSIONS_PER_YEAR / n) - 1 : null
+  // Elapsed period in actual calendar days between the first and final snapshots.
+  const elapsedDays =
+    snapshots.length > 1
+      ? isoDayNumber(snapshots[snapshots.length - 1].date) - isoDayNumber(snapshots[0].date)
+      : 0
+  const cagr = totalReturn !== null && totalReturn > -1 && elapsedDays > 0
+    ? Math.pow(last / initial, DAYS_PER_YEAR / elapsedDays) - 1
+    : null
 
   const returns = dailyReturns(snapshots)
   const vol = returns.length >= 2 ? populationStd(returns) * Math.sqrt(SESSIONS_PER_YEAR) : null

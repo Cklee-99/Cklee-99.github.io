@@ -6,6 +6,7 @@ import {
   initialPortfolio,
   applyCorporateActions,
   applyBuy,
+  applySell,
   type PortfolioState,
 } from './accounting'
 import { sizeBuy, executeBuy, executeSell, executionPrice, type ExecutionParams } from './execution'
@@ -110,5 +111,77 @@ describe('invariants', () => {
     applyBuy(state, 3, 400, 0.4)
     expect(state.shares).toBe(3)
     expect(state.cash).toBeCloseTo(99.6, 10)
+  })
+})
+
+describe('cost basis includes buy-side fees', () => {
+  it('weights the average cost basis with the buy fee and realizes both fees on a sell', () => {
+    const state = initialPortfolio(10000)
+    applyBuy(state, 10, 900, 1)
+    // Basis = (10×0 + 900 + 1) / 10 = 90.1 per share. Cash pays gross + fee.
+    expect(state.costBasisPerShare).toBeCloseTo(90.1, 10)
+    expect(state.cash).toBeCloseTo(10000 - 901, 10)
+    const sold = applySell(state, 10, 950, 0.95)
+    // Realized P&L = (950 − 0.95) − 10×90.1 = 949.05 − 901 = 48.05.
+    expect(sold.realizedPnL).toBeCloseTo(48.05, 10)
+    expect(state.cash).toBeCloseTo(10000 - 901 + 949.05, 10)
+  })
+
+  it('updates the weighted average cost basis across multiple buys with different prices and fees', () => {
+    const state = initialPortfolio(10000)
+    applyBuy(state, 4, 360, 0.4) // basis 90.1/share
+    applyBuy(state, 6, 660, 0.6) // shares 10, basis (4×90.1 + 660.6)/10 = 102.1
+    expect(state.shares).toBe(10)
+    expect(state.costBasisPerShare).toBeCloseTo(102.1, 10)
+    const sold = applySell(state, 10, 1100, 1.1)
+    expect(sold.realizedPnL).toBeCloseTo(1100 - 1.1 - 1021, 10)
+  })
+
+  it('makes a price-stable round trip unprofitable when both fees apply', () => {
+    const state = initialPortfolio(1000)
+    applyBuy(state, 1, 100, 1) // basis 101
+    const sold = applySell(state, 1, 100, 1) // (100 − 1) − 101 = −2
+    expect(sold.realizedPnL).toBeCloseTo(-2, 10)
+    expect(state.cash).toBeCloseTo(1000 - 101 + 99, 10)
+  })
+
+  it('reports exactly break-even when the sell proceeds net of fee equal the fee-inclusive basis', () => {
+    const state = initialPortfolio(1000)
+    applyBuy(state, 1, 90.9, 0.1) // basis 91.0
+    const sold = applySell(state, 1, 92, 1) // (92 − 1) − 91 = 0
+    expect(sold.realizedPnL).toBeCloseTo(0, 10)
+  })
+
+  it('keeps average cost basis correct for fractional share lots', () => {
+    const state = initialPortfolio(1000)
+    applyBuy(state, 3.7, 333, 0.333) // basis (333 + 0.333) / 3.7 = 90.09
+    applyBuy(state, 2.3, 207, 0.207) // shares 6, basis (3.7×90.09 + 207.207)/6
+    expect(state.shares).toBe(6)
+    expect(state.costBasisPerShare).toBeCloseTo(90.09, 10)
+  })
+
+  it('leaves the zero-fee behavior unchanged', () => {
+    const state = initialPortfolio(1000)
+    applyBuy(state, 5, 500, 0)
+    expect(state.costBasisPerShare).toBe(100)
+    const sold = applySell(state, 5, 600, 0)
+    expect(sold.realizedPnL).toBe(100)
+    expect(state.cash).toBe(1100)
+  })
+
+  it('counts each fee exactly once across a buy-and-sell round trip', () => {
+    const state = initialPortfolio(1000)
+    applyBuy(state, 5, 400, 0.4)
+    applySell(state, 5, 500, 0.5)
+    // Cash = 1000 − (400 + 0.4) + (500 − 0.5) = 1099.1; each fee removed once.
+    expect(state.cash).toBeCloseTo(1099.1, 10)
+    expect(state.shares).toBe(0)
+  })
+
+  it('reconciles equity as cash plus position market value after a buy', () => {
+    const state = initialPortfolio(10000)
+    applyBuy(state, 10, 900, 1)
+    const positionValue = 10 * 95
+    expect(state.cash + positionValue).toBeCloseTo(10000 - 901 + 950, 10)
   })
 })

@@ -6,7 +6,7 @@
 
 import type { DailyBar, MarketDataset } from '../data/market'
 import type { BacktestConfig } from '../config/backtest'
-import type { StrategyAction, StrategyContext } from '../strategies/types'
+import type { StrategyAction, StrategyContext, StrategyIndicators } from '../strategies/types'
 import { strategyById } from '../strategies/registry'
 import { sma } from '../indicators/series'
 import { bollingerBands } from '../indicators/bollinger'
@@ -14,13 +14,20 @@ import { rsi } from '../indicators/rsi'
 import { findPatterns } from '../indicators/patterns'
 import { initialPortfolio, applyCorporateActions, type PortfolioState, type PositionSnapshot } from './accounting'
 import { executeBuy, executeSell, type ExecutionParams } from './execution'
-import { buyAndHoldReturn } from './benchmark'
+import { runBuyAndHoldBenchmark } from './benchmark'
 import { computeSummary } from './performance'
 import type { DailySnapshot, DecisionRecord, ExecutedOrder, SkippedOrder, SimulationResult } from './types'
 
 const DEFAULT_TRANCHE_COUNT = 12
 
-function buildContext(
+function truncateSeries(series: readonly (number | null)[], count: number): readonly (number | null)[] {
+  return series.slice(0, count)
+}
+
+/** Builds the read-only decision context. The bars prefix and every indicator
+    array are truncated to length `index + 1`, so a future bar or a future
+    indicator value is physically absent and cannot be reached by any strategy. */
+export function buildStrategyContext(
   bars: readonly DailyBar[],
   index: number,
   config: BacktestConfig,
@@ -36,13 +43,23 @@ function buildContext(
   positionValue: number,
   simStart: number,
 ): StrategyContext {
-  const prefix: DailyBar[] = bars.slice(0, index + 1)
+  const count = index + 1
+  const prefix: DailyBar[] = bars.slice(0, count)
+  const indicators: StrategyIndicators = {
+    ma5: truncateSeries(ma5, count),
+    ma20: truncateSeries(ma20, count),
+    ma60: truncateSeries(ma60, count),
+    bollingerUpper: truncateSeries(bollUpper, count),
+    bollingerMiddle: truncateSeries(bollMiddle, count),
+    bollingerLower: truncateSeries(bollLower, count),
+    rsi14: truncateSeries(rsi14, count),
+  }
   const patterns = findPatterns(prefix)
   const isMonthStart = index === simStart || bars[index - 1].date.slice(0, 7) !== bars[index].date.slice(0, 7)
   return {
     bars: prefix,
     index,
-    indicators: { ma5, ma20, ma60, bollingerUpper: bollUpper, bollingerMiddle: bollMiddle, bollingerLower: bollLower, rsi14 },
+    indicators,
     patterns,
     cash: state.cash,
     equity,
@@ -73,6 +90,7 @@ export function runSimulation(dataset: MarketDataset, config: BacktestConfig): S
       skippedOrders: [],
       snapshots: [],
       summary: computeSummary(config, [], [], null),
+      benchmark: runBuyAndHoldBenchmark(dataset, config),
       warnings: ['insufficientSimRange'],
       startDate: null,
       endDate: null,
@@ -135,7 +153,7 @@ export function runSimulation(dataset: MarketDataset, config: BacktestConfig): S
     const equity = state.cash + positionValue
     snapshots.push({ date: bar.date, cash: state.cash, shares: state.shares, positionValue, equity, dayFees })
 
-    const context = buildContext(
+    const context = buildStrategyContext(
       bars,
       i,
       config,
@@ -165,8 +183,13 @@ export function runSimulation(dataset: MarketDataset, config: BacktestConfig): S
   if (ledger.filter((o) => o.action === 'SELL').length === 0) warnings.push('noClosedTrades')
   if (skippedOrders.length > 0) warnings.push('skippedOrders')
 
-  const benchmarkReturn = buyAndHoldReturn(bars, { startDate: config.startDate, endDate: config.endDate })
-  const summary = computeSummary(config, snapshots, ledger, benchmarkReturn)
+  // Comparable buy-and-hold account benchmark (same fees, slippage, fractional
+  // shares, corporate actions, and date range). Its account-level details are
+  // reported through `result.benchmark`; the summary uses its total return.
+  const benchmark = runBuyAndHoldBenchmark(dataset, config)
+  for (const w of benchmark.warnings) warnings.push(w)
+
+  const summary = computeSummary(config, snapshots, ledger, benchmark.totalReturn)
 
   return {
     config,
@@ -175,6 +198,7 @@ export function runSimulation(dataset: MarketDataset, config: BacktestConfig): S
     skippedOrders,
     snapshots,
     summary,
+    benchmark,
     warnings,
     startDate: bars[simStart].date,
     endDate: bars[simEnd].date,

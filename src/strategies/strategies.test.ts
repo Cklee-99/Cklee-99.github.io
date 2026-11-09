@@ -313,3 +313,23 @@ describe('registry', () => {
   })
 })
 
+describe('strategy context boundary', () => {
+  it('exposes only index + 1 bars and indicator values to every strategy', () => {
+    const bars = [bar(10), bar(11), bar(12)]
+    const ctx = buildContext({ bars })
+    expect(ctx.bars.length).toBe(3)
+    expect(ctx.index).toBe(2)
+    expect(ctx.indicators.ma5.length).toBe(3)
+    expect(ctx.indicators.ma20.length).toBe(3)
+    expect(ctx.indicators.ma60.length).toBe(3)
+    expect(ctx.indicators.bollingerUpper.length).toBe(3)
+    expect(ctx.indicators.bollingerMiddle.length).toBe(3)
+    expect(ctx.indicators.bollingerLower.length).toBe(3)
+    expect(ctx.indicators.rsi14.length).toBe(3)
+    // Reading one index past the latest decision session is out of bounds.
+    expect(ctx.bars[3]).toBeUndefined()
+    expect(ctx.indicators.ma5[3]).toBeUndefined()
+    expect(ctx.indicators.rsi14[3]).toBeUndefined()
+  })
+})
+

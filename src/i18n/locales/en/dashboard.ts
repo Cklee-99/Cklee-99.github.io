@@ -14,5 +14,9 @@ export const dashboard: Record<string, string> = {
   'dashboard.metric.equity': 'Final equity',
   'dashboard.metric.totalReturn': 'Total return',
   'dashboard.metric.none': 'Not available yet',
+  'dashboard.section.headline': 'Headline metrics',
   'dashboard.section.overview': 'Latest simulation summary',
+  'dashboard.section.equity': 'Portfolio equity',
+  'dashboard.section.trades': 'Recent executions',
+  'dashboard.recent.none': 'No executed trades in this run.',
 }

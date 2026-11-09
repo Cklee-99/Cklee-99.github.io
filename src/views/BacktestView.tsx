@@ -46,13 +46,12 @@ function numInput(value: string): number {
   return Number(value)
 }
 
-export function BacktestView({ locale, dataset }: { locale: Locale; dataset: MarketDataset | null }) {
+export function BacktestView({ locale, dataset, result, onResult }: { locale: Locale; dataset: MarketDataset | null; result: SimulationResult | null; onResult: (result: SimulationResult | null) => void }) {
   const t = (key: string) => translate(locale, key)
   const [config, setConfig] = useState<BacktestConfig>(initialConfig())
   const [errors, setErrors] = useState<FieldErrors>({})
   const [status, setStatus] = useState<'idle' | 'valid' | 'invalid'>('idle')
   const [advancedOpen, setAdvancedOpen] = useState(false)
-  const [result, setResult] = useState<SimulationResult | null>(null)
 
   const runBacktest = () => {
     const validation = validateBacktestConfig(config)
@@ -60,7 +59,9 @@ export function BacktestView({ locale, dataset }: { locale: Locale; dataset: Mar
     setStatus(validation.valid && dataset ? 'valid' : 'invalid')
     if (!validation.valid) return
     if (!dataset) return
-    setResult(runSimulation(dataset, config))
+    // A failed run never replaces a previous completed result.
+    const next = runSimulation(dataset, config)
+    onResult(next)
   }
 
   const asPercent = (value: number | null) =>

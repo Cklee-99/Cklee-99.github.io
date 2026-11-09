@@ -23,5 +23,8 @@ export const simulation: Record<string, string> = {
   'simulation.warning.skippedOrders': '有部分訂單無法執行；這些訂單會標示出來，不會被忽略。',
   'simulation.warning.insufficientIndicatorHistory': '前期交易時段缺乏指標歷史，因此保持持有。',
   'simulation.warning.insufficientSimRange': '無任何交易日落在設定日期範圍內。',
+  'simulation.warning.benchmarkNoRange': '買入持有基準無法執行：無任何交易日落在設定日期範圍內。',
+  'simulation.warning.benchmarkAdjustmentUnsupported': '買入持有基準無法計算：資料調整政策與獨立股利/股拆處理不相容，因此不會重複計算公司行動。',
+  'simulation.warning.benchmarkNoPurchase': '買入持有基準無法購買任何股數：整股政策與交易成本下沒有可購入的量。',
   'simulation.limitNote': '演算模型屬教育用途。訊號於當日收盤產生，於次日開盤執行；歷史績效不代表未來結果。',
 }

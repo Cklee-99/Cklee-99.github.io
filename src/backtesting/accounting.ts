@@ -30,13 +30,16 @@ export function applyCorporateActions(state: PortfolioState, dividend?: number, 
   return state
 }
 
-/** Returns the cash change of a completed buy. Never lets cash go negative. */
+/** Returns the cash change of a completed buy. Never lets cash go negative.
+    The average cost basis includes the BUY transaction fee, so the SELL realized
+    P&L reflects both the buy and sell fees. Slippage is already inside `gross`
+    (the execution price includes it) and is never added here a second time. */
 export function applyBuy(state: PortfolioState, shares: number, gross: number, fee: number): PortfolioState {
   if (shares <= 0 || gross < 0) return state
   state.cash -= gross + fee
   if (state.cash < 0) state.cash = 0
   const newShares = state.shares + shares
-  const basis = newShares > 0 ? (state.shares * state.costBasisPerShare + gross) / newShares : 0
+  const basis = newShares > 0 ? (state.shares * state.costBasisPerShare + gross + fee) / newShares : 0
   state.shares = newShares
   state.costBasisPerShare = basis
   return state

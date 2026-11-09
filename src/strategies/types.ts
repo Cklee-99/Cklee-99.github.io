@@ -7,8 +7,10 @@ import type { StrategyId } from '../config/backtest'
 
 export type StrategyAction = 'BUY' | 'SELL' | 'HOLD'
 
-/** Indicator arrays aligned to the full source series; a strategy may only read
-    values at or before its decision index. */
+/** Indicator arrays exposed to a strategy are truncated to the decision prefix
+    (length exactly `index + 1`), so a future indicator value is physically absent
+    and cannot be accessed by any strategy. Values are aligned to input length;
+    an entry is `null` before its full window completes. */
 export interface StrategyIndicators {
   ma5: readonly (number | null)[]
   ma20: readonly (number | null)[]
@@ -20,9 +22,12 @@ export interface StrategyIndicators {
 }
 
 /** Read-only snapshot ending at the decision session. `bars` is truncated to the
-    prefix bars[0..index] so future bars cannot be reached, and indicators are
-    likewise only available up to `index`. Portfolio fields are the state through
-    the decision session's close (before any next-session execution). */
+    prefix bars[0..index] and every indicator array has length `index + 1`, so no
+    future bar or future indicator value can be reached. `index` is the original
+    dataset index of the decision session; because arrays have length index+1,
+    accessing `index` is the newest available element and `index - 1` the previous.
+    Portfolio fields are the state through the decision session's close (before
+    any next-session execution). */
 export interface StrategyContext {
   bars: readonly DailyBar[]
   index: number

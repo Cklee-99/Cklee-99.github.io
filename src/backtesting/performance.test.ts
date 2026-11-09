@@ -43,7 +43,7 @@ function sellOrder(date: string, realizedPnL: number): ExecutedOrder {
 }
 
 describe('computeSummary', () => {
-  it('computes total return, drawdown, volatility, and Sharpe from a deterministic curve', () => {
+  it('computes total return, drawdown, CAGR, volatility, and Sharpe from a deterministic curve', () => {
     const snapshots = [
       snapshot('2024-01-02', 10000, 0),
       snapshot('2024-01-03', 11000, 11000),
@@ -56,6 +56,45 @@ describe('computeSummary', () => {
     expect(summary.maxDrawdown).toBeCloseTo(-0.1, 10)
     expect(summary.annualizedVolatility).toBeCloseTo(0.1 * Math.sqrt(252), 10)
     expect(summary.sharpeRatio).toBeCloseTo(0, 10)
+    // CAGR uses actual calendar days (2024-01-02 → 2024-01-04 = 2 days) with
+    // 365.25 days/year, not a fixed session count.
+    expect(summary.cagr).toBeCloseTo(Math.pow(0.99, 365.25 / 2) - 1, 10)
+  })
+
+  it('annualizes CAGR from the actual calendar span, not the session count', () => {
+    // Both runs have the same 2 snapshots and +20% total return, but the second
+    // spans a weekend so it covers 3 calendar days while the first covers 1.
+    const monday = computeSummary(
+      config(),
+      [snapshot('2024-01-02', 10000, 0), snapshot('2024-01-03', 12000, 12000)],
+      [],
+      null,
+    )
+    const weekend = computeSummary(
+      config(),
+      [snapshot('2024-01-05', 10000, 0), snapshot('2024-01-08', 12000, 12000)],
+      [],
+      null,
+    )
+    // Same session count, different number of actual calendar days.
+    expect(weekend.cagr).toBeCloseTo(Math.pow(1.2, 365.25 / 3) - 1, 10)
+    expect(monday.cagr).toBeCloseTo(Math.pow(1.2, 365.25 / 1) - 1, 10)
+  })
+
+  it('leaves CAGR null when the snapshots span no calendar period', () => {
+    const summary = computeSummary(config(), [snapshot('2024-01-02', 10000, 0)], [], null)
+    expect(summary.cagr).toBeNull()
+  })
+
+  it('uses a documented zero risk-free rate (mean session return, no subtraction)', () => {
+    const snapshots = [
+      snapshot('2024-01-02', 10000, 0),
+      snapshot('2024-01-03', 11000, 11000),
+      snapshot('2024-01-04', 12100, 12100),
+    ]
+    const summary = computeSummary(config(), snapshots, [], null)
+    // Returns are +10%, +10%; std = 0 so the ratio is guarded to null.
+    expect(summary.sharpeRatio).toBeNull()
   })
 
   it('leaves win rate null when no trade has closed', () => {

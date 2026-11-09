@@ -52,7 +52,7 @@ export const data: Record<string, string> = {
   'data.pattern.bearishEngulfing': 'Bearish Engulfing',
   'data.pattern.hammer': 'Hammer',
   'data.pattern.shootingStar': 'Shooting Star',
-  'data.diag.title': 'Indicator diagnostic (charts arrive in a later milestone)',
+  'data.diag.title': 'Indicator values',
   'data.diag.close': 'Close',
   'data.diag.date': 'Date',
   'data.diag.sma5': 'SMA5',

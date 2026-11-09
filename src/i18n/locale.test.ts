@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { RESOURCES } from './index'
 
-const GROUPS = ['data.', 'strategy.', 'simulation.']
+const GROUPS = ['data.', 'strategy.', 'simulation.', 'analysis.', 'dashboard.']
 
 function keysFor(group: string, locale: 'zh-TW' | 'en'): string[] {
   return Object.keys(RESOURCES[locale]).filter((k) => k.startsWith(group))
